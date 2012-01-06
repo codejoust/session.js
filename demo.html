@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <script src="visitor.js"></script>
+</head>
+<body>
+  <h2>Visitor.js demo</h2>
+  <p>Demo output:</p>
+  <pre>
+  
+  </pre>
+  <script>
+    window.onload = function(){
+      document.getElementsByTagName('pre')[0].innerHTML = JSON.stringify(visitor, undefined, 2);
+    }
+  </script> 
+</body>
+</html>
