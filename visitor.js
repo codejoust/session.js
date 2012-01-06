@@ -274,7 +274,7 @@
           }  
         })(module_name);
       };
-      win.visitor_loaded && win.visitor_loaded(win.visitor)
+      win.visitor_loaded && win.visitor_loaded(win.visitor);
     }
   };
   visitor_loader.init();
