@@ -49,14 +49,8 @@ API demo dump:
     },
     "device": {
       "screen": {
-        "availTop": 0,
-        "pixelDepth": 24,
-        "availHeight": 1024,
         "height": 1024,
         "width": 1280,
-        "colorDepth": 24,
-        "availWidth": 1280,
-        "availLeft": -1280
       },
       "viewport": {
         "width": 1206,
