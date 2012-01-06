@@ -1,4 +1,11 @@
-
+/**
+ * Visitor.js 0.0.2
+ * (c) 2012 Iain, CodeJoust
+ * Visitor is freely distributable under the MIT license.
+ * Portions of Visitor.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
+ * This version uses google's jsapi library for location services.
+ * For details, see: https://github.com/codejoust/visitor.js
+ */
 (function(win, doc){
   var BrowserDetect = { // from quirksmode.org/js/detect.html
   	detect_browser: function () {
