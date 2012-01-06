@@ -166,7 +166,7 @@
               cb(win.google.loader.ClientLocation);
               utils.set_cookie(cookie_name,utils.stringify_json(win.google.loader.ClientLocation), 1000 * 60 * 60 * 2);} }
           embed_script('https://www.google.com/jsapi?callback=gloader_loaded')
-        } else { cb(visitor.parse_json(utils.get_cookie(cookie_name))); }
+        } else { cb(utils.parse_json(utils.get_cookie(cookie_name))); }
       }
     },
     locale: function(){
@@ -275,7 +275,7 @@
               } else {
                 win.visitor[module_name] = ret;
               }
-            } catch (e) { }
+            } catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
           } else {
             win.visitor[module_name] = module_runner;
           }  

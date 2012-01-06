@@ -4,13 +4,24 @@ Visitor.js
 Open-Source version of visitor.js.
 
 To use: include the file visitor.js, then access the visitor object.
+It uses the google javascript loader to get location data.
 For async loading, use the window.visitor_loaded callback.
 
-To add more fields, add more modules torwards the bottom of the js file.
+To add more fields, add more modules towards the bottom of the js file.
 
-API demo dump:
+API demo dump of `window.visitor`:
 <pre>
   {
+    "location": {
+      "latitude": 35.046,
+      "longitude": -85.31,
+      "address": {
+        "city": "Chattanooga",
+        "region": "TN",
+        "country": "USA",
+        "country_code": "US"
+      }
+    },
     "locale": "en-US",
     "cur_session": {
       "visits": 1,
@@ -21,11 +32,11 @@ API demo dump:
       "referrer": "",
       "url": "http://localhost:8000/demo.html",
       "path": "/demo.html",
-      "start": 1325888295592,
-      "last_visit": 1325888295592
+      "start": 1325891156797,
+      "last_visit": 1325891156797
     },
     "orig_session": {
-      "visits": 13,
+      "visits": 15,
       "search": {
         "engine": null,
         "query": null
@@ -34,7 +45,7 @@ API demo dump:
       "url": "http://localhost:8000/test_visitor.html",
       "path": "/test_visitor.html",
       "start": 1325886709703,
-      "last_visit": 1325888295594
+      "last_visit": 1325891156799
     },
     "browser": {
       "browser": "Chrome",
