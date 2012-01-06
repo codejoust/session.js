@@ -7,22 +7,17 @@ To use: include the file visitor.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.visitor_loaded callback.
 
-To add more fields, add more modules towards the bottom of the js file.
+To add more fields, add or remove included modules and options near the bottom of the js file.
+
 
 API demo dump of `window.visitor`:
 <pre>
   {
-    "location": {
-      "latitude": 35.046,
-      "longitude": -85.31,
-      "address": {
-        "city": "Chattanooga",
-        "region": "TN",
-        "country": "USA",
-        "country_code": "US"
-      }
+    "api_version": 0.2,
+    "locale": {
+      "country": "US",
+      "lang": "en"
     },
-    "locale": "en-US",
     "cur_session": {
       "visits": 1,
       "search": {
@@ -32,11 +27,11 @@ API demo dump of `window.visitor`:
       "referrer": "",
       "url": "http://localhost:8000/demo.html",
       "path": "/demo.html",
-      "start": 1325891156797,
-      "last_visit": 1325891156797
+      "start": 1325893718929,
+      "last_visit": 1325893718929
     },
     "orig_session": {
-      "visits": 15,
+      "visits": 20,
       "search": {
         "engine": null,
         "query": null
@@ -45,7 +40,7 @@ API demo dump of `window.visitor`:
       "url": "http://localhost:8000/test_visitor.html",
       "path": "/test_visitor.html",
       "start": 1325886709703,
-      "last_visit": 1325891156799
+      "last_visit": 1325893718932
     },
     "browser": {
       "browser": "Chrome",
@@ -60,8 +55,8 @@ API demo dump of `window.visitor`:
     },
     "device": {
       "screen": {
-        "height": 1024,
         "width": 1280,
+        "height": 1024
       },
       "viewport": {
         "width": 1206,
@@ -70,6 +65,16 @@ API demo dump of `window.visitor`:
       "is_phone": false,
       "is_tablet": false,
       "is_mobile": false
+    },
+    "location": {
+      "latitude": 35.046,
+      "longitude": -85.31,
+      "address": {
+        "city": "Chattanooga",
+        "region": "TN",
+        "country": "USA",
+        "country_code": "US"
+      }
     }
   }
 </pre>

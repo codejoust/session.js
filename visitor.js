@@ -7,6 +7,11 @@
  * For details, see: https://github.com/codejoust/visitor.js
  */
 (function(win, doc){
+  var opts = {
+      enable_location: true,
+      session_days: 32
+  }
+  if ('session_opts' in window){ opts = session_opts; }
   var BrowserDetect = { // from quirksmode.org/js/detect.html
   	detect_browser: function () {
   		return {browser: this.searchString(this.dataBrowser),
@@ -165,20 +170,23 @@
             if ('google' in window) {
               cb(win.google.loader.ClientLocation);
               utils.set_cookie(cookie_name,utils.stringify_json(win.google.loader.ClientLocation), 1000 * 60 * 60 * 2);} }
-          embed_script('https://www.google.com/jsapi?callback=gloader_loaded')
+          embed_script('https://www.google.com/jsapi?callback=gloader_loaded');
         } else { cb(utils.parse_json(utils.get_cookie(cookie_name))); }
       }
     },
     locale: function(){
-      return utils.search(['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], function(prop_name){
+      var res = utils.search(['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], function(prop_name){
         return navigator[prop_name];
-      });
+      }), res_parts = res.split('-');
+      if (res_parts.length == 2){
+        return {country: res_parts[1], lang: res_parts[0]}
+      } else { return {country: res} }
     },
     browser: function(){
       return BrowserDetect.detect_browser();
     },
     device: function(){
-      var device = {screen: screen, viewport: {}};
+      var device = {screen: {width: screen.width, height: screen.height}, viewport: {}};
       var elem=doc.documentElement, doc_body=doc.getElementsByTagName('body')[0], agent = navigator.userAgent;
       device.viewport.width=(win.innerWidth||elem.clientWidth||doc_body.clientWidth);
       device.viewport.height=(win.innerHeight||elem.clientHeight||doc_body.clientHeight);
@@ -247,21 +255,25 @@
       return sess;
     }
   }
-  
   var visitor_loader = {
     modules: {
-      location: modules.location('location'),
       locale: modules.locale(),
       cur_session: modules.visitor(),
-      orig_session: modules.visitor('first_session', 1000 * 60 * 60 * 24 * 32),
+      orig_session: modules.visitor('first_session', 1000 * 60 * 60 * 24 * (opts.session_days || 32)),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
     },
     init: function(){
+      if (opts.enable_location){
+        visitor_loader.modules['location'] = modules.location('location');
+      }
       // Setup Visitor Object
+      var asyncs = 0, check_async = function(){
+        if (asyncs == 0){ win.visitor_loaded && win.visitor_loaded(win.visitor); }
+      };
       win.modules = visitor_loader.modules;
-      win.visitor = {}
+      win.visitor = {api_version: 0.2}
       for (module_name in visitor_loader.modules){
         (function(module_name){
           var module_runner = visitor_loader.modules[module_name];
@@ -269,19 +281,21 @@
             try {
               var ret = module_runner;
               if (typeof(ret) === 'function'){
+                asyncs++;
                 ret(function(data){
                   win.visitor[module_name] = data;
-                })
+                  asyncs--;
+                  check_async();
+                });
               } else {
                 win.visitor[module_name] = ret;
               }
             } catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
           } else {
             win.visitor[module_name] = module_runner;
-          }  
+          }
         })(module_name);
-      };
-      win.visitor_loaded && win.visitor_loaded(win.visitor);
+      }
     }
   };
   visitor_loader.init();
