@@ -253,6 +253,16 @@
         utils.set_cookie(cookie_name, JSON.stringify(sess), expires)
       }
       return sess;
+    },
+    time: function(){
+      var now = new Date()
+        , dst_start = new Date(now.getYear() + 1900, 2, 1, 2, 0, 0)
+        , dst_end = new Date(now.getYear() + 1900, 10, 1, 2, 0, 0)
+        , daylight_savings = null
+        , offset_ms = now.getTimezoneOffset();
+      if (dst_start.getDay()){ dst_start.setDate(dst_start.getDate() + (7-dst_start.getDay())); }
+      if (dst_end.getDay()){ dst_end.setDate(dst_end.getDate() + (7-dst_end.getDay())); }
+      return {daylight_savings: (now > dst_start && now < dst_end), offset_ms: offset_ms, offset_hours: -offset_ms/60};
     }
   }
   var visitor_loader = {
@@ -262,7 +272,8 @@
       orig_session: modules.visitor('first_session', 1000 * 60 * 60 * 24 * (opts.session_days || 32)),
       browser: modules.browser(),
       plugins: modules.plugins(),
-      device: modules.device()
+      device: modules.device(),
+      time: modules.time()
     },
     init: function(){
       if (opts.enable_location){
