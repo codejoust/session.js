@@ -6,344 +6,469 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc){
-  var opts = {
-    use_html5_location: false,
-    // use html5 location -- this _ONLY_ return lat/long, not an city/address
-    ipinfodb_key: false,
-    // attempts to use ipinfodb if provided an API key -- get a key at http://ipinfodb.com/register.php
-    gapi_location: true,
-    // leaving true allows for fallback for both the html5 location and the ipinfodb
-    session_days: 32,
-    // how many days session information is kept in a cookie
-    location_cookie_name: 'location',
-    // the name of the location cookie
-    //   -- warning: different providers use the same cookie
-    //   -- if switching providers, remember to use another cookie or provide checks for old cookies
-    session_cookie_name: 'first_session',
-    // session cookie name
-    location_cookie_hours: 2
-    // lifetime of the location cookie
-  }
-  if ('session_opts' in win){
-    for (opt in win.session_opts){
-      opts[opt] = win.session_opts[opt];
-    }
-  }
-  var BrowserDetect = { // from quirksmode.org/js/detect.html
-    detect_browser: function(){
-      return {browser: this.searchString(this.dataBrowser),
-              version: this.searchVersion(navigator.userAgent) || this.searchVersion(navigator.appVersion),
-              OS: this.searchString(this.dataOS)};
-    },
-    searchString: function (data) {
-      for (var i=0;i<data.length;i++)  {
-        var dataString = data[i].string;
-        var dataProp = data[i].prop;
-        this.versionSearchString = data[i].versionSearch || data[i].identity;
-        if (dataString) {
-          if (dataString.indexOf(data[i].subString) != -1)
-            return data[i].identity; }
-        else if (dataProp)
-          return data[i].identity;
-      } },
-    searchVersion: function (dataString) {
-      var index = dataString.indexOf(this.versionSearchString);
-      if (index == -1) return;
-      return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
-    },
-    dataBrowser: [
-      { string: navigator.userAgent,subString: "Chrome", identity: "Chrome" },
-      { string: navigator.userAgent,subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
-      {  string: navigator.vendor,  subString: "Apple",  identity: "Safari",  versionSearch: "Version"},
-      {  prop: win.opera,  identity: "Opera",  versionSearch: "Version" },
-      {  string: navigator.vendor,  subString: "iCab",identity: "iCab" },
-      {  string: navigator.vendor,  subString: "KDE",  identity: "Konqueror"  },
-      { string: navigator.userAgent,subString: "Firefox", identity: "Firefox"  },
-      {  string: navigator.vendor,  subString: "Camino", identity: "Camino"  },
-      {    // for newer Netscapes (6+)
-        string: navigator.userAgent, subString: "Netscape",  identity: "Netscape"  },
-      {  string: navigator.userAgent,subString: "MSIE",  identity: "Explorer",  versionSearch: "MSIE"  },
-      {  string: navigator.userAgent,subString: "Gecko",  identity: "Mozilla",  versionSearch: "rv"    },
-      {     // for older Netscapes (4-)
-        string: navigator.userAgent, subString: "Mozilla", identity: "Netscape",  versionSearch: "Mozilla" } ],
-    dataOS : [
-      { string: navigator.platform,  subString: "Win", identity: "Windows"},
-      { string: navigator.platform,  subString: "Mac",  identity: "Mac"  },
-      { string: navigator.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-      { string: navigator.userAgent, subString: 'iPad', identitiy: 'iPad'},
-      { string: navigator.platform,  subString: "Linux",  identity: "Linux"  },
-      { string: navigator.userAgent, subString: 'Android', identity: 'Android'}]
-    };
+(function( window, document ) {
   
-  var utils = window.utils = {
-    parse_url: function(url_str){
-      var el = document.createElement('a'); el.href = url_str;
-      var qs = {};
-      if (el.search.substr(1) != ''){
-        utils.each(el.search.substr(1).split('&'), function(part){
-          var parts = part.split('=');
-          if (parts.length == 2){ qs[parts[0]] = decodeURI(parts[1]); }
-        });
-      }
-      return {host: el.host, path: el.pathname, protocol: el.protocol, port: el.port, search: el.search, qs: qs};
-    },
-    stringify_json: JSON.stringify || function (obj) {
-      var t = typeof (obj);
-      if (t != "object" || obj === null) {
-        if (t == "string") obj = '"'+obj+'"'; return String(obj);
-      } else {
-        var n, v, json = [], arr = (obj && obj.constructor == Array);
-        for (n in obj) {
-          v = obj[n]; t = typeof(v);
-          if (t == "string") v = '"'+v+'"';
-          else if (t == "object" && v !== null) v = JSON.stringify(v);
-          json.push((arr ? "" : '"' + n + '":') + String(v));
-        } return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
-      }
-    },
-    parse_json: (JSON.parse || function ( data ) {
-      if( typeof data !== "string" || !data )
-        return null;
-      return ( new Function( "return " + data ) )();
-    }),
-    set_cookie: function(c_name, value, expire) {
-      var exdate = new Date(); exdate.setDate(exdate.getDate()+expire);
-      document.cookie = c_name+ "=" +escape(value) + ((expire==null) ? "" : ";expires="+exdate.toGMTString());
-    },
-    get_cookie: function(c_name) {
-      if (document.cookie.length > 0 ) {
-        c_start=document.cookie.indexOf(c_name + "=");
-        if (c_start != -1){
-          c_start=c_start + c_name.length+1;
-          c_end=document.cookie.indexOf(";",c_start);
-          if (c_end == -1) {
-            c_end=document.cookie.length;
-          } return unescape(document.cookie.substring(c_start,c_end));
-        } } return null; },
-    each: function(obj, iterator, context) { // from underscore.js
-      if (obj == null) return;
-      if (obj.length === +obj.length) {
-        for (var i = 0, l = obj.length; i < l; i++) {
-          if (i in obj && iterator.call(context, obj[i], i, obj) === {}) return;
-        }
-      } else {
-        for (var key in obj) {
-          if (hasOwnProperty.call(obj, key)) {
-            if (iterator.call(context, obj[key], key, obj) === {}) return;
-          }
-        }
-      }
-    },
-    any: function(obj, iterator, context) {
-      iterator || (iterator = _.identity);
-      var result = false;
-      if (obj == null) return result;
-      utils.each(obj, function(value, index, list) {
-        if (result || (result = iterator.call(context, value, index, list))) return {};
-      });
-      return !!result;
-    },
-    search: function(obj, iterator, context) {
-      var result;
-      utils.any(obj, function(value, index, list) {
-        result = iterator.call(context, value, index, list);
-        if (result){ return true; }
-      });
-      return result;
-    },
-    find: function(obj, iterator, context) {
-      var result;
-      utils.any(obj, function(value, index, list) {
-        if (iterator.call(context, value, index, list)) {
-          result = value;
-          return true;
-        }
-      });
-      return result;
-    },
-    is_undef: function(obj){ return obj === void 0; }, // from underscore.js
-    embed_script: function(url){
-      var scr = document.createElement('script');
-      scr.type = 'text/javascript';
-      scr.src = url;
-      document.getElementsByTagName('head')[0].appendChild(scr);
-    }
+  // Settings: defaults
+  var options = {
+    // Use the HTML5 Geolocation API
+    // this ONLY returns lat & long, no city/address
+    HTML5Location:  false,
+    // Attempts to use IPInfoDB if provided a valid key
+    // get a key at http://ipinfodb.com/register.php
+    IPInfoDBKey:    false,
+    // Leaving true allows for fallback for both
+    // the HTML5 location and the IPInfoDB
+    GAPILocation:   true,
+    // Name of the location cookie
+    //   - WARNING: different providers use the same cookie
+    //   - if switching providers, remember to use another cookie or provide checks for old cookies
+    locationCookie: "location",
+    // Location cookie expiration in hours
+    locationCookieTimeout: 2,
+    // Session expiration in days
+    sessionTimeout: 32,
+    // Session cookie name
+    sessionCookie: "first_session"
   };
-
-  var modules = {
-    locale: function(){
-      var res = utils.search(['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], function(prop_name){
-        return navigator[prop_name];
-      }), res_parts = res.split('-');
-      if (res_parts.length == 2){
-        return {country: res_parts[1].toLowerCase(), lang: res_parts[0].toLowerCase()}
-      } else { return {lang: res.toLowerCase()}; }
-    },
-    browser: function(){
-      return BrowserDetect.detect_browser();
-    },
-    device: function(){
-      var device = {screen: {width: screen.width, height: screen.height}, viewport: {}};
-      var elem=doc.documentElement, doc_body=doc.getElementsByTagName('body')[0], agent = navigator.userAgent;
-      device.viewport.width=(win.innerWidth||elem.clientWidth||doc_body.clientWidth);
-      device.viewport.height=(win.innerHeight||elem.clientHeight||doc_body.clientHeight);
-      device.is_tablet = !!(agent.match(/(iPad|SCH-I800|xoom|kindle)/i));
-      device.is_phone  = !device.is_tablet && !!(agent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i));
-      device.is_mobile = device.is_tablet || device.is_phone;
-      return device;
-    },
-    plugins: function(){
-      var check_plugin = function(plugin_name){
-        if (navigator.plugins){
-          return !!utils.find(navigator.plugins, function(plugin){
-            if (plugin && plugin['name'] && plugin['name'].toLowerCase().indexOf(plugin_name) !== -1){
-              return true;
-            } }); } }
-      return {
-        flash: check_plugin('flash'),
-        silverlight: check_plugin('silverlight'),
-        java: check_plugin('java'),
-        quicktime: check_plugin('quicktime'),
-      }
-    },
-    session: function(cookie_name, expires){
-      if (cookie_name){ var sess = utils.get_cookie(cookie_name); }
-      if (!sess){
-        var sess = {
-          visits: 1, referrer: doc.referrer, referrer_info: utils.parse_url(doc.referrer),
-          url: win.location.href, path: win.location.pathname,
-          start: (new Date()).getTime(), last_visit: (new Date()).getTime(),
-          search: {engine: null, query: null}}, engines = [
-          {nm: 'Google', host: "google", query: 'q'},
-          {nm: "Bing", host: "bing.com", query: "q"},
-          {nm: "Yahoo", host:"search.yahoo", query: "p"},
-          {nm: "AOL", host:"search.aol", query: "q"},
-          {nm: "Ask", host:"ask.com", query:"q"},
-          {nm: "Baidu", host:"baidu.com", query:"wd"},
-        ];
-        utils.find(engines, function(engine){
-          if (sess.referrer_info.host.indexOf(engine.host) != -1){
-            sess.search.engine = engine.nm;
-            sess.search.query  = sess.referrer_info.qs[engine.query];
-            sess.search.terms  = sess.search.query.split(' ');
-            return true;
-          }
-        });
-        if (!sess.search.engine){
-          utils.find(['q','query','term','p','wd','query','text'], function(query_term){
-            if (sess.referrer_info.qs[query_term]){
-              sess.search.engine = 'Unknown';
-              sess.search.query = res;
-              return true;
-            }
-            });
-        }
-        if (cookie_name){ utils.set_cookie(cookie_name, JSON.stringify(sess), expires); }
-      } else {
-        sess = JSON.parse(sess);
-        sess.last_visit = (new Date()).getTime();
-        sess.visits += 1;
-        utils.set_cookie(cookie_name, JSON.stringify(sess), expires)
-      }
-      return sess;
-    },
-    html5_location: function(){
-      return function(cb){
-        navigator.geolocation.getCurrentPosition(function(position){
-          position['source'] = 'html5';
-          return position
-        }, function(err_msg){
-          if (opts.gapi_location){ modules.gapi_location()(cb); }
-          else { cb({err: true, source: 'html5'}); }
-        });
-        
-      }
-    },
-    gapi_location: function(){
-      return function(cb){
-        var loc = null;
-        if (!utils.get_cookie(opts.location_cookie_name)){
-          win.gloader_loaded = function(){
-            if ('google' in window) {
-              if (win.google.loader.ClientLocation){
-                win.google.loader.ClientLocation.source = 'google';
-                cb(win.google.loader.ClientLocation);
-              } else {
-                cb({err: true, source: 'google'})
-              }
-              utils.set_cookie(opts.location_cookie_name,utils.stringify_json(win.google.loader.ClientLocation), 1000 * 60 * 60 * opts.location_cookie_hours);} }
-          utils.embed_script('https://www.google.com/jsapi?callback=gloader_loaded');
-        } else { cb(utils.parse_json(utils.get_cookie(opts.location_cookie_name))); }
-      }
-    },
-    ipinfodb_location: function(api_key){
-      return function(cb){
-        var loc_cookie = utils.get_cookie(opts.location_cookie_name);
-        if (loc_cookie){ return cb(JSON.parse(loc_cookie)); }
-        win.ipinfocb = function(data){
-          if (data['statusCode'] == 'OK'){
-            data['source'] = 'ipinfodb';
-            utils.set_cookie(opts.location_cookie_name, JSON.stringify(data), 1000 * 60 * 60 * opts.location_cookie_hours);
-            cb(data);
-          } else {
-            if (opts.gapi_location){
-              return modules.gapi()(cb);
-            } else { cb({err: true, source: 'ipinfodb', err_msg: data['statusMessage']}); }
-          }
-        }
-        utils.embed_script('http://api.ipinfodb.com/v3/ip-city/?key='+ api_key +'&format=json&callback=ipinfocb');
-      }
-    }
-  }
-  var session_loader = {
-    modules: {
+  
+  
+  // Session object
+  var session = function() {
+    // Merge options
+    if( window.session && window.session.options )
+      util.merge( options, window.session.options );
+    // Modules to run
+    this.modules = {
+      apiVersion: 0.3,
       locale: modules.locale(),
-      cur_session: modules.session(),
-      orig_session: modules.session(opts.session_cookie_name, 1000 * 60 * 60 * 24 * opts.session_days),
+      currentSession: modules.session(),
+      originalSession: modules.session(
+        options.sessionCookie,
+        options.sessionTimeout * 24 * 60 * 60 * 1000
+      ),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
-    },
-    init: function(){
-      // location switch
-      if (opts.use_html5_location){
-        session_loader.modules['location'] = modules.html5_location();
-      } else if (opts.ipinfodb_key){
-        session_loader.modules['location'] = modules.ipinfodb_location(opts.ipinfodb_key);
-      } else if (opts.gapi_location){
-        session_loader.modules['location'] = modules.gapi_location();
-      }
-      // Setup session object
-      var asyncs = 0, check_async = function(){;
-        if (asyncs == 0){ win.session_loaded && win.session_loaded(win.session); }
-      };
-      win.modules = session_loader.modules;
-      win.session = {api_version: 0.3}
-      for (module_name in session_loader.modules){
-        (function(module_name){
-          var module_runner = session_loader.modules[module_name];
-          if (typeof(module_runner) === 'function'){
-            try {
-              var ret = module_runner;
-              if (typeof(ret) === 'function'){
-                asyncs++;
-                ret(function(data){
-                  win.session[module_name] = data;
-                  asyncs--;
-                  check_async();
-                });
-              } else {
-                win.session[module_name] = ret;
-              }
-            } catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
-          } else {
-            win.session[module_name] = module_runner;
-          }
-        })(module_name);
-      }
-      check_async();
+    };
+    // Location switch
+    if( options.HTML5Location ) {
+      this.modules.location = modules.HTML5Location();
+    } else if( options.IPInfoDBKey ) {
+      this.modules.location = modules.IPInfoDBLocation( options.IPInfoDBKey );
+    } else if( options.GAPILocation ) {
+      this.modules.location = modules.GAPILocation();
     }
+    // Set up checking, if all modules are ready
+    var asynchs = 0, module, result, self = this,
+        checkAsynch = function() {
+          if( asynchs === 0 && window.session && window.session.start )
+            window.session.start( self.modules );
+        };
+    // Run asynchronos methods
+    for( var name in this.modules ) {
+      module = self.modules[name];
+      if( typeof module === "function" ) {
+        try {
+          asynchs++;
+          module( function( data ) {
+            self.modules[name] = data;
+            asynchs--;
+            checkAsynch();
+          });
+        }
+        catch( error ) {
+          if( console && typeof console.log === "function" )
+            console.log( error );
+        }
+      } else self.modules[name] = module;
+    }
+    checkAsynch();
   };
-  session_loader.init();
-})(window, document);
+  
+  
+  // Browser (and OS) detection
+  var browser = {
+    
+    detect: function() {
+      return {
+        browser: this.search( this.data.browser ),
+        version: this.search( navigator.userAgent ) || this.search( navigator.appVersion ),
+        os: this.search( this.data.os )
+      };
+    },
+    
+    search: function( data ) {
+      if( typeof data === "object" ) {
+        // search for string match
+        for( var i = 0; i < data.length; i++ ) {
+          var dataString = data[i].string,
+              dataProp   = data[i].prop;
+          this.versionString = data[i].versionSearch || data[i].identity;
+          if( dataString ) {
+            if( dataString.indexOf( data[i].subString ) != -1 )
+              return data[i].identity;
+          }
+          else if( dataProp )
+            return data[i].identity;
+        }
+      }
+      else {
+        // search for version number
+        var index = data.indexOf( this.versionString );
+        if( index == -1 ) return;
+        return parseFloat(
+          data.substring( index + this.versionString.length + 1 )
+        );
+      }
+    },
+    
+    data: {
+      browser: [
+        { string: navigator.userAgent, subString: "Chrome", identity: "Chrome" },
+        { string: navigator.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+        { string: navigator.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
+        { prop: window.opera, identity: "Opera", versionSearch: "Version" },
+        { string: navigator.vendor, subString: "iCab",identity: "iCab" },
+        { string: navigator.vendor, subString: "KDE", identity: "Konqueror" },
+        { string: navigator.userAgent, subString: "Firefox", identity: "Firefox" },
+        { string: navigator.vendor, subString: "Camino", identity: "Camino" },
+        { string: navigator.userAgent, subString: "Netscape", identity: "Netscape" },
+        { string: navigator.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
+        { string: navigator.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
+        { string: navigator.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
+      ],
+      os: [
+        { string: navigator.platform, subString: "Win", identity: "Windows" },
+        { string: navigator.platform, subString: "Mac", identity: "Mac" },
+        { string: navigator.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
+        { string: navigator.userAgent, subString: "iPad", identitiy: "iPad" },
+        { string: navigator.platform, subString: "Linux", identity: "Linux" },
+        { string: navigator.userAgent, subString: "Android", identity: "Android" }
+      ]
+    }
+    
+  };
+  
+  
+  var modules = {
+    
+    browser: function() {
+      return browser.detect();
+    },
+    
+    locale: function() {
+      var lang = (
+        navigator.language        ||
+        navigator.browserLanguage ||
+        navigator.systemLanguage  ||
+        navigator.userLanguage
+      ).split( "-" );
+      return {
+        country: lang[1].toLowerCase(),
+        lang: lang[0].toLowerCase()
+      };
+    },
+    
+    device: function() {
+      
+      var device = {
+        screen: {
+          width: screen.width,
+          height: screen.height
+        }
+      };
+      
+      var html = document.documentElement,
+          body = document.getElementsByTagName( "body" )[0];
+      
+      device.viewport = {
+        width:  window.innerWidth  || html.clientWidth  || body.clientWidth,
+        height: window.innerHeight || html.clientHeight || body.clientHeight
+      };
+      
+      device.isTablet = !!navigator.userAgent.match(
+        /(iPad|SCH-I800|xoom|kindle)/i
+      );
+      
+      device.isPhone = !device.isTablet && !!navigator.userAgent.match(
+        /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i
+      );
+      
+      device.isMobile = device.isTablet || device.isPhone;
+      
+      return device;
+      
+    },
+    
+    plugins: function() {
+      
+      var checkPlugin = function( name ) {
+        if( navigator.plugins ) {
+          var plugin, i = 0, length = navigator.plugins.length;
+          for( ; i < length; i++ ) {
+            plugin = navigator.plugins[i];
+            if( plugin && plugin.name && plugin.name.toLowerCase().indexOf( name ) !== -1 )
+              return true;
+          }
+          return false;
+        }
+        return void 0;
+      };
+      
+      return {
+        flash:       checkPlugin( "flash" ),
+        silverlight: checkPlugin( "silverlight" ),
+        java:        checkPlugin( "java" ),
+        quicktime:   checkPlugin( "quicktime" )
+      };
+      
+    },
+    
+    session: function( cookie, expires ) {
+      
+      var session = null;
+      
+      if( typeof cookie === "string" )
+        session = util.getCookie( cookie );
+      
+      if( session === null ) {
+        
+        session = {
+          visits: 1,
+          search: {
+            engine: null,
+            query:  null
+          }
+        };
+        
+        var searchEngines = [
+          { name: "Google", url: "https?://(?:www\.)?(?:images.)?google.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "q" },
+          { name: "Bing", url: "https?://(?:www\.)?bing.com", query: "q" },
+          { name: "Yahoo", url: "https?://(?:www\.)?(?:.+.)?search.yahoo.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "p" },
+          { name: "AOL", url: "https?://(?:www\.)?(?:aol)?search.aol.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "q" },
+          { name: "Ask", url: "https?://(?:www\.)?(?:[a-z]+.)?ask.com", query: "q" },
+          { name: "Baidu", url: "https?://(?:www\.)?baidu.com", query: "wd" }
+        ];
+        
+        var engine, match, i = 0,
+            length = searchEngines.length;
+        
+        for( ; i < length; i++ ) {
+          
+          engine = searchEngines[i];
+          
+          match = new RegExp( engine.url + "/.*[?&]" + engine.query + "=([^&]+)" );
+          match = match.exec( document.referrer );
+          
+          if( match ) {
+            session.search.engine = engine.name;
+            session.search.query  = engine.query;
+          }
+          
+        }
+        
+        if( session.search.engine === null ) {
+          
+          match = new RegExp( "[?&](?:q|query|term|p|wd|query|text)=([^&]+)" );
+          match = match.exec( document.referrer );
+          
+          if( match ) {
+            session.search.engine = "Unknown";
+            session.search.query  = match;
+          }
+          
+        }
+        
+        session.referrer  = document.referrer;
+        session.url       = window.location.href;
+        session.path      = window.location.pathname;
+        session.start     = new Date().getTime();
+        session.lastVisit = session.start;
+        
+      } else {
+        session = json.parse( session );
+        session.lastVisit = new Date().getTime();
+        session.visits++;
+      }
+      
+      if( typeof cookie === "string" )
+        util.setCookie( cookie, json.stringify( session ), expires );
+      
+      return session;
+      
+    },
+    
+    HTML5Location: function() {
+      return function( callback ) {
+        navigator.geolocation.getCurrentPosition( function( position ) {
+          position.source = 'HTML5';
+          callback( position );
+        }, function( error ) {
+          if( options.GAPILocation ) modules.GAPILocation()( callback );
+          else callback({ error: true, source: 'HTML5' });
+        });
+      };
+    },
+    
+    GAPILocation: function() {
+      return function( callback ) {
+        var location = null;
+        if( !util.getCookie( options.locationCookie ) ) {
+          window.gloaderReady = function() {
+            if( "google" in window ) {
+              if( window.google.loader.ClientLocation ) {
+                window.google.loader.ClientLocation.source = "google";
+                callback( window.google.loader.ClientLocation );
+              }
+              else {
+                callback({ error: true, source: "google" });
+              }
+              util.setCookie(
+                options.locationCookie,
+                json.stringify( window.google.loader.ClientLocation ),
+                options.locationCookieTimeout * 60 * 60 * 1000
+              );
+            }
+          };
+          util.loadScript( "https://www.google.com/jsapi?callback=gloaderReady" );
+        }
+        else {
+          callback( json.parse( util.getCookie( options.locationCookie ) ) );
+        }
+      };
+    },
+    
+    IPInfoDBLocation: function( apiKey ) {
+      return function( callback ) {
+        var locationCookie = util.getCookie( options.locationCookie );
+        if( locationCookie )
+          return json.parse( locationCookie );
+        window.IPInfoReady = function( data ) {
+          if( data.statusCode === "OK" ) {
+            data.source = "IPInfoDB";
+            util.setCookie(
+              options.locationCookie,
+              json.stringify( data ),
+              options.locationCookie * 60 * 60 * 1000
+            );
+            callback( data );
+          }
+          else {
+            if( options.GAPILocation ) return modules.GAPILocation()(callback);
+            else callback({ error: true, source: "IPInfoDB", message: data.statusMessage });
+          }
+        };
+        util.loadScript(
+          "http://api.ipinfodb.com/v3/ip-city/?key=" + apiKey + "&format=json&callback=ipinfocb"
+        );
+      };
+    }
+    
+  };
+  
+  
+  // Utilities
+  var util = {
+    
+    trim: function( string ) {
+      return string.replace( /^\s+|\s+$/g, '' );
+    },
+    
+    setCookie: function( name, value, expires, path ) {
+      // set path
+      path = path ? "; path=" + path : "; path=/";
+      // calculate expiration date
+      if( expires ) {
+        var date = new Date();
+        date.setTime( date.getTime() + expires );
+        expires = "; expires=" + date.toGMTString();
+      }
+      else expires = "";
+      // set cookie
+      return document.cookie = name + "=" + value + expires + path;
+    },
+    
+    getCookie: function( name ) {
+      var cookies = document.cookie.split( ';' ),
+          cookie, i = 0, length = cookies.length;
+      for( ; i < length; i++ ) {
+        cookie = util.trim( cookies[i] );
+        if( cookie.indexOf( name ) === 0 )
+          return cookie.substring( name.length + 1, cookie.length );
+      }
+      return null;
+    },
+    
+    loadScript: function( url ) {
+      var element  = document.createElement( "script" );
+      element.type = "text/javascript";
+      element.src  = url;
+      document.getElementsByTagName( "body" )[0].appendChild( element );
+    },
+    
+    // Object merge, stolen from jQuery ($.fn.extend)
+    merge: function() {
+      
+      var options, name, copy,
+          target = arguments[0] || {},
+          length = arguments.length,
+          i      = 1;
+      
+      for( ; i < length; i++ ) {
+        // Only deal with non-null/undefined values
+        if( ( options = arguments[i] ) != null ) {
+          // Extend the base object
+          for( name in options ) {
+            copy = options[name];
+            // Prevent never-ending loop
+            if( target === copy ) continue;
+            // Don't bring in undefined values
+            if( copy !== void 0 ) target[name] = copy;
+          }
+        }
+      }
+      // Return the modified object
+      return target;
+    }
+    
+  };
+  
+  
+  // JSON
+  var json = {
+    
+    parse: JSON.parse || function( data ) {
+      if( typeof data !== "string" || !data )
+        return null;
+      return ( new Function( "return " + data ) )();
+    },
+    
+    stringify: JSON.stringify || function( object ) {
+      var type = typeof object;
+      if( type !== "object" || object === null ) {
+        if( type === "string" )
+          return '"' + object + '"';
+      }
+      else {
+        var k, v, json = [],
+            isArray = ( object && object.constructor === Array );
+        for( k in object ) {
+          v = object[k]; type = typeof v;
+          if( type === "string" )
+            v = '"' + v + '"';
+          else if( type === "object" && v !== null )
+            v = this.stringify( v );
+          json.push( ( isArray ? "" : '"' + k + '":' ) + v );
+        }
+        return ( isArray ? "[" : "{" ) + json.join(",") + ( isArray ? "]" : "}" );
+      }
+    }
+    
+  };
+  
+  
+  // Initialize
+  new session();
+  
+  
+})( window, document );
