@@ -54,7 +54,7 @@
     };
     // Location switch
     if( options.use_html5_location ) {
-      this.modules.location = modules.use_html5_location();
+      this.modules.location = modules.html5_location();
     } else if( options.ipinfodb_key ) {
       this.modules.location = modules.ipinfodb_location( options.ipinfodb_key );
     } else if( options.gapi_location ) {
@@ -303,7 +303,7 @@
       
     },
     
-    use_html5_location: function() {
+    html5_location: function() {
       return function( callback ) {
         navigator.geolocation.getCurrentPosition( function( position ) {
           position.source = 'HTML5';
