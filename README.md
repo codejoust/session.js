@@ -11,12 +11,13 @@ For async loading, use the window.session_loaded callback.
 
 To add more fields, add or remove included modules and options near the bottom of the js file.
 
-Usage:
+### Usage:
 
-Include `session.js` in the head or footer. If used in the footer (before the `</body>` tag, you can use the `window.session_loaded = function(session){}` callback).
-options are optional, sensible defaults are used.
+Include `session.js` in the head or footer.
 
-API demo dump of `window.session`:
+If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
+
+### API demo dump of `window.session`:
 
 ```js
 {
@@ -32,13 +33,13 @@ API demo dump of `window.session`:
       "query": null
     },
     "referrer": "",
-    "url": "http://localhost:8000/demo.html",
-    "path": "/demo.html",
-    "start": 1325893718929,
-    "last_visit": 1325893718929
+    "url": "http://localhost:8000/",
+    "path": "/",
+    "start": 1325915913173,
+    "last_visit": 1325915913173
   },
   "orig_session": {
-    "visits": 20,
+    "visits": 75,
     "search": {
       "engine": null,
       "query": null
@@ -47,7 +48,7 @@ API demo dump of `window.session`:
     "url": "http://localhost:8000/test_visitor.html",
     "path": "/test_visitor.html",
     "start": 1325886709703,
-    "last_visit": 1325893718932
+    "last_visit": 1325915913175
   },
   "browser": {
     "browser": "Chrome",
@@ -81,7 +82,8 @@ API demo dump of `window.session`:
       "region": "TN",
       "country": "USA",
       "country_code": "US"
-    }
+    },
+    "source": "google"
   }
 }
 ```
@@ -89,6 +91,7 @@ API demo dump of `window.session`:
 ### Options:
 Set `window.session_opts` before including `session.js` to change options.
 Default options are shown below.
+
 ```js
 window.session_opts = {
   use_html5_location: false,

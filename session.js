@@ -25,9 +25,9 @@
     location_cookie_hours: 2
     // lifetime of the location cookie
   }
-  if ('session_opts' in window){
-    for (opt in window.session_opts){
-      opts[opt] = window.session_opts[opt];
+  if ('session_opts' in win){
+    for (opt in win.session_opts){
+      opts[opt] = win.session_opts[opt];
     }
   }
   var BrowserDetect = { // from quirksmode.org/js/detect.html
@@ -78,7 +78,7 @@
   	]
   };
   
-  var utils = window.utils = {
+  var utils = {
     stringify_json: JSON.stringify || function (obj) {
       var t = typeof (obj);
       if (t != "object" || obj === null) {
@@ -99,8 +99,7 @@
         return p;
     }),
     set_cookie: function(c_name, value, expire) {
-      var exdate=new Date();
-      exdate.setDate(exdate.getDate()+expire);
+      var exdate = new Date(); exdate.setDate(exdate.getDate()+expire);
       document.cookie = c_name+ "=" +escape(value) + ((expire==null) ? "" : ";expires="+exdate.toGMTString());
     },
     get_cookie: function(c_name) {
@@ -164,7 +163,6 @@
   };
 
   var modules = {
-    
     locale: function(){
       var res = utils.search(['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], function(prop_name){
         return navigator[prop_name];
@@ -192,10 +190,7 @@
           return !!utils.find(navigator.plugins, function(plugin){
             if (plugin && plugin['name'] && plugin['name'].toLowerCase().indexOf(plugin_name) !== -1){
               return true;
-            }
-          });
-        }
-      }
+            } }); } }
       return {
         flash: check_plugin('flash'),
         silverlight: check_plugin('silverlight'),
