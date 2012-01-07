@@ -58,11 +58,18 @@
     } else if( options.GAPILocation ) {
       this.modules.location = modules.GAPILocation();
     }
+    // Cache window.session.start
+    if( window.session && window.session.start )
+      var start = window.session.start;
     // Set up checking, if all modules are ready
     var asynchs = 0, module, result, self = this,
         checkAsynch = function() {
-          if( asynchs === 0 && window.session && window.session.start )
-            window.session.start( self.modules );
+          if( asynchs === 0 ) {
+            // Map over results
+            window.session = self.modules;
+            // Run start calback
+            if( start ) start( self.modules );
+          }
         };
     // Run asynchronos methods
     for( var name in this.modules ) {
