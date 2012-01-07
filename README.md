@@ -1,16 +1,16 @@
-Visitor.js
+Viewer.js
 ==
 
-Open-Source version of visitor.js.
+Open-Source version of viewer.js.
 
-To use: include the file visitor.js, then access the visitor object.
+To use: include the file Viewer.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.visitor_loaded callback.
 
 To add more fields, add or remove included modules and options near the bottom of the js file.
 
 
-API demo dump of `window.visitor`:
+API demo dump of `window.viewer`:
 <pre>
   {
     "api_version": 0.2,

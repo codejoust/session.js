@@ -1,10 +1,10 @@
 /**
- * Visitor.js 0.0.2
+ * Viewer.js 0.0.2
  * (c) 2012 Iain, CodeJoust
- * Visitor is freely distributable under the MIT license.
- * Portions of Visitor.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
+ * viewer is freely distributable under the MIT license.
+ * Portions of viewer.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
  * This version uses google's jsapi library for location services.
- * For details, see: https://github.com/codejoust/visitor.js
+ * For details, see: https://github.com/codejoust/viewer.js
  */
 (function(win, doc){
   var opts = {
@@ -212,7 +212,7 @@
         quicktime: check_plugin('quicktime'),
       }
     },
-    visitor: function(cookie_name, expires){
+    viewer: function(cookie_name, expires){
       if (cookie_name){ var sess = utils.get_cookie(cookie_name); }
       if (!sess){
         sess = {visits: 1, search: {engine: null, query: null}}
@@ -255,48 +255,48 @@
       return sess;
     }
   }
-  var visitor_loader = {
+  var viewer_loader = {
     modules: {
       locale: modules.locale(),
-      cur_session: modules.visitor(),
-      orig_session: modules.visitor('first_session', 1000 * 60 * 60 * 24 * (opts.session_days || 32)),
+      cur_session: modules.viewer(),
+      orig_session: modules.viewer('first_session', 1000 * 60 * 60 * 24 * (opts.session_days || 32)),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
     },
     init: function(){
       if (opts.enable_location){
-        visitor_loader.modules['location'] = modules.location('location');
+        viewer_loader.modules['location'] = modules.location('location');
       }
-      // Setup Visitor Object
+      // Setup viewer Object
       var asyncs = 0, check_async = function(){
-        if (asyncs == 0){ win.visitor_loaded && win.visitor_loaded(win.visitor); }
+        if (asyncs == 0){ win.viewer_loaded && win.viewer_loaded(win.viewer); }
       };
-      win.modules = visitor_loader.modules;
-      win.visitor = {api_version: 0.2}
-      for (module_name in visitor_loader.modules){
+      win.modules = viewer_loader.modules;
+      win.viewer = {api_version: 0.2}
+      for (module_name in viewer_loader.modules){
         (function(module_name){
-          var module_runner = visitor_loader.modules[module_name];
+          var module_runner = viewer_loader.modules[module_name];
           if (typeof(module_runner) === 'function'){
             try {
               var ret = module_runner;
               if (typeof(ret) === 'function'){
                 asyncs++;
                 ret(function(data){
-                  win.visitor[module_name] = data;
+                  win.viewer[module_name] = data;
                   asyncs--;
                   check_async();
                 });
               } else {
-                win.visitor[module_name] = ret;
+                win.viewer[module_name] = ret;
               }
             } catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
           } else {
-            win.visitor[module_name] = module_runner;
+            win.viewer[module_name] = module_runner;
           }
         })(module_name);
       }
     }
   };
-  visitor_loader.init();
+  viewer_loader.init();
 })(window, document);

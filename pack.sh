@@ -1,3 +1,3 @@
 #!/bin/sh
-echo 'Packing visitor.js to visitor.min.js'
-uglifyjs visitor.js > visitor.min.js
+echo 'Packing viewer.js to viewer.min.js'
+uglifyjs viewer.js > viewer.min.js

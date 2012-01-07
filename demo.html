@@ -3,17 +3,17 @@
 <head>
 </head>
 <body>
-  <h2>Visitor.js demo</h2>
+  <h2>Viewer.js demo</h2>
   <p>Demo output:</p>
   <pre>
   
   </pre>
   <script>
-    window.visitor_loaded = function(){
-      document.getElementsByTagName('pre')[0].innerHTML = JSON.stringify(visitor, undefined, 2);
+    window.viewer_loaded = function(){
+      document.getElementsByTagName('pre')[0].innerHTML = JSON.stringify(viewer, undefined, 2);
     }
-    window.visitor_opts = { enable_location: true, session_days: 5 };
+    window.session_opts = { enable_location: true, session_days: 5 };
   </script> 
-  <script src="visitor.js"></script>
+  <script src="viewer.js"></script>
 </body>
 </html>
