@@ -15,6 +15,13 @@ Configurable <a href="#options">options</a> are below.
 
 Include `session.js` in the head or footer.
 
+#### Download/Linking:
+Edge:
+[uncompressed](https://raw.github.com/codejoust/session.js/master/session.js),
+[compressed](https://raw.github.com/codejoust/session.js/master/session.min.js)
+Lock version to v0.3:
+[uncompressed](https://raw.github.com/codejoust/session.js/v0.3/session.js) [compressed](https://raw.github.com/codejoust/session.js/v0.3/session.min.js)
+
 If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
 
 ### API demo dump of `window.session`:
@@ -122,4 +129,3 @@ window.session_opts = {
   // lifetime of the location cookie
 };
 ```
-
