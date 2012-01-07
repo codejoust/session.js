@@ -1,5 +1,5 @@
 /**
- * session.js 0.0.2
+ * session.js 0.2
  * (c) 2012 Iain, CodeJoust
  * session is freely distributable under the MIT license.
  * Portions of session.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
@@ -53,30 +53,41 @@
       return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
     },
     dataBrowser: [
-      { string: navigator.userAgent, subString: "Chrome", identity: "Chrome" },
-      { string: navigator.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+      { string: navigator.userAgent,subString: "Chrome", identity: "Chrome" },
+      { string: navigator.userAgent,subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
       {  string: navigator.vendor,  subString: "Apple",  identity: "Safari",  versionSearch: "Version"},
       {  prop: win.opera,  identity: "Opera",  versionSearch: "Version" },
       {  string: navigator.vendor,  subString: "iCab",identity: "iCab" },
       {  string: navigator.vendor,  subString: "KDE",  identity: "Konqueror"  },
-      { string: navigator.userAgent, subString: "Firefox", identity: "Firefox"  },
-      {  string: navigator.vendor, subString: "Camino", identity: "Camino"  },
+      { string: navigator.userAgent,subString: "Firefox", identity: "Firefox"  },
+      {  string: navigator.vendor,  subString: "Camino", identity: "Camino"  },
       {    // for newer Netscapes (6+)
         string: navigator.userAgent, subString: "Netscape",  identity: "Netscape"  },
-      {  string: navigator.userAgent,  subString: "MSIE",  identity: "Explorer",  versionSearch: "MSIE"  },
-      {  string: navigator.userAgent,  subString: "Gecko",  identity: "Mozilla",  versionSearch: "rv"    },
+      {  string: navigator.userAgent,subString: "MSIE",  identity: "Explorer",  versionSearch: "MSIE"  },
+      {  string: navigator.userAgent,subString: "Gecko",  identity: "Mozilla",  versionSearch: "rv"    },
       {     // for older Netscapes (4-)
         string: navigator.userAgent, subString: "Mozilla", identity: "Netscape",  versionSearch: "Mozilla" } ],
     dataOS : [
-      { string: navigator.platform, subString: "Win", identity: "Windows"},
+      { string: navigator.platform,  subString: "Win", identity: "Windows"},
       { string: navigator.platform,  subString: "Mac",  identity: "Mac"  },
-      { string: navigator.userAgent,subString: "iPhone", identity: "iPhone/iPod" },
-      { string: navigator.userAgent,subString: 'iPad', identitiy: 'iPad'},
+      { string: navigator.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
+      { string: navigator.userAgent, subString: 'iPad', identitiy: 'iPad'},
       { string: navigator.platform,  subString: "Linux",  identity: "Linux"  },
       { string: navigator.userAgent, subString: 'Android', identity: 'Android'}]
     };
   
-  var utils = {
+  var utils = window.utils = {
+    parse_url: function(url_str){
+      var el = document.createElement('a'); el.href = url_str;
+      var qs = {};
+      if (el.search.substr(1) != ''){
+        utils.each(el.search.substr(1).split('&'), function(part){
+          var parts = part.split('=');
+          if (parts.length == 2){ qs[parts[0]] = decodeURI(parts[1]); }
+        });
+      }
+      return {host: el.host, path: el.pathname, protocol: el.protocol, port: el.port, search: el.search, qs: qs};
+    },
     stringify_json: JSON.stringify || function (obj) {
       var t = typeof (obj);
       if (t != "object" || obj === null) {
@@ -199,16 +210,20 @@
     session: function(cookie_name, expires){
       if (cookie_name){ var sess = utils.get_cookie(cookie_name); }
       if (!sess){
-        sess = {visits: 1, search: {engine: null, query: null}}
-        var engines = [{nm: 'Google', url: "https?://(?:www\.)?(?:images.)?google.(?:com|[a-z]{2}|com?.[a-z]{2})", query: 'q'},
-        {nm: "Bing", url: "https?://(?:www\.)?bing.com", query: "q"},
-        {nm: "Yahoo", url:"https?://(?:www\.)?(?:.+.)?search.yahoo.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "p"},
-        {nm: "AOL", url:"https?://(?:www\.)?(?:aol)?search.aol.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "q"},
-        {nm: "Ask", url:"https?://(?:www\.)?(?:[a-z]+.)?ask.com", query:"q"},
-        {nm: "Baidu", url:"https?://(?:www\.)?baidu.com", query:"wd"}];
+        var sess = {
+          visits: 1, referrer: doc.referrer, referrer_info: utils.parse_url(doc.referrer),
+          url: win.location.href, path: win.location.pathname,
+          start: (new Date()).getTime(), last_visit: (new Date()).getTime(),
+          search: {engine: null, query: null}}, engines = [
+          {nm: 'Google', host: "google", query: 'q'},
+          {nm: "Bing", host: "bing.com", query: "q"},
+          {nm: "Yahoo", host:"search.yahoo", query: "p"},
+          {nm: "AOL", host:"search.aol", query: "q"},
+          {nm: "Ask", host:"ask.com", query:"q"},
+          {nm: "Baidu", host:"baidu.com", query:"wd"},
+        ];
         utils.find(engines, function(engine){
-          var res = RegExp(engine['url'] + '/.*[?&]' + engine.query + '=([^&]+)').exec(doc.referrer);
-          if (res){
+          if (sess.referrer_info.host.indexOf(engine.host) != -1 && sess.referrer_info.qs[engine.query]){
             sess.search.engine = engine.nm;
             sess.search.query  = engine.query;
             return true;
@@ -216,19 +231,13 @@
         });
         if (!sess.search.engine){
           utils.find(['q','query','term','p','wd','query','text'], function(query_term){
-            var res = RegExp("[?&]" + query_term + "=([^&]+)").exec(doc.referrer);
-            if (res){
+            if (sess.referrer_info.qs[query_term]){
               sess.search.engine = 'Unknown';
               sess.search.query = res;
               return true;
             }
-          });
+            });
         }
-        sess.referrer = doc.referrer;
-        sess.url = win.location.href;
-        sess.path = win.location.pathname;
-        sess.start = (new Date()).getTime();
-        sess.last_visit = sess.start;
         if (cookie_name){ utils.set_cookie(cookie_name, JSON.stringify(sess), expires); }
       } else {
         sess = JSON.parse(sess);

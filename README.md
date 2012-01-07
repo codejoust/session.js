@@ -23,32 +23,40 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
 {
   "api_version": 0.2,
   "locale": {
-    "country": "US",
+    "country": "us",
     "lang": "en"
   },
   "cur_session": {
     "visits": 1,
+    "referrer": "",
+    "referrer_info": {
+      "host": "localhost:8000",
+      "path": "/demo.html",
+      "protocol": "http:",
+      "port": "8000",
+      "search": "",
+      "qs": {}
+    },
+    "url": "http://localhost:8000/demo.html",
+    "path": "/demo.html",
+    "start": 1325953820732,
+    "last_visit": 1325953820732,
     "search": {
       "engine": null,
       "query": null
-    },
-    "referrer": "",
-    "url": "http://localhost:8000/",
-    "path": "/",
-    "start": 1325915913173,
-    "last_visit": 1325915913173
+    }
   },
   "orig_session": {
-    "visits": 75,
+    "visits": 34,
     "search": {
       "engine": null,
       "query": null
     },
     "referrer": "http://localhost:8000/",
-    "url": "http://localhost:8000/test_visitor.html",
-    "path": "/test_visitor.html",
-    "start": 1325886709703,
-    "last_visit": 1325915913175
+    "url": "http://localhost:8000/demo.html",
+    "path": "/demo.html",
+    "start": 1325944690598,
+    "last_visit": 1325953820744
   },
   "browser": {
     "browser": "Chrome",
@@ -70,8 +78,8 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
       "width": 1206,
       "height": 816
     },
-    "is_phone": false,
     "is_tablet": false,
+    "is_phone": false,
     "is_mobile": false
   },
   "location": {
