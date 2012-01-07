@@ -1,13 +1,15 @@
 Session.js
 ==
 
+Fixed: is_phone is now false if is_tablet is true.
+
 Gives information about the current session.
 
 To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
-<a href="http://codejoust.github.com/session.js/">Live Demo</a>
+<a href="http://mattmillr.github.com/session.js/">Live Demo</a>
 
 To add more fields, add or remove included modules and options near the bottom of the js file.
 
