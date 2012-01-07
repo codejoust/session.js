@@ -93,10 +93,10 @@
         } return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
       }
     },
-    parse_json: (JSON.parse || function (str) {
-      if (str === "") str = '""';
-        eval("var p=" + str + ";");
-        return p;
+    parse_json: (JSON.parse || function ( data ) {
+      if( typeof data !== "string" || !data )
+        return null;
+      return ( new Function( "return " + data ) )();
     }),
     set_cookie: function(c_name, value, expire) {
       var exdate = new Date(); exdate.setDate(exdate.getDate()+expire);
