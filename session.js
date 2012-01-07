@@ -1,5 +1,5 @@
 /**
- * session.js 0.2
+ * session.js 0.3
  * (c) 2012 Iain, CodeJoust
  * session is freely distributable under the MIT license.
  * Portions of session.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
@@ -319,7 +319,7 @@
         if (asyncs == 0){ win.session_loaded && win.session_loaded(win.session); }
       };
       win.modules = session_loader.modules;
-      win.session = {api_version: 0.2}
+      win.session = {api_version: 0.3}
       for (module_name in session_loader.modules){
         (function(module_name){
           var module_runner = session_loader.modules[module_name];
