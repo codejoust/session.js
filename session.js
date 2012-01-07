@@ -400,7 +400,7 @@
         host:     a.host,
         path:     a.pathname,
         protocol: a.protocol,
-        port:     a.port === "" ? 80 : a.port,
+        port:     a.port === "" ? 80 : +a.port,
         search:   a.search,
         query:    query
       }
