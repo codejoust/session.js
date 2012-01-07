@@ -119,6 +119,8 @@ window.session_opts = {
   // leaving true allows for fallback for both the html5 location and the ipinfodb
   session_days: 32,
   // how many days session information is kept in a cookie
+  
+<img src="https://secure.codejoust.com/pix" />
   location_cookie_name: 'location',
   // the name of the location cookie
   //   -- warning: different providers use the same cookie
