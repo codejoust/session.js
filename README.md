@@ -7,6 +7,8 @@ To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
+<a href="http://codejoust.github.com/session.js/">online, live demo</a>
+
 To add more fields, add or remove included modules and options near the bottom of the js file.
 
 
