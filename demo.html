@@ -138,10 +138,15 @@
   </script>
   <p class="bot"><a href="https://github.com/codejoust/session.js/">Session.JS on GitHub</a> by <a href="http://iain.in/">Iain</a></p>
   <script>
-    window.session_loaded = function(){
-      document.getElementsByTagName('pre')[0].innerHTML = JSONf.stringify(session, undefined, 2);
-    }
-    window.session_opts = { enable_location: true, session_days: 5 };
+    window.session = {
+      options: {
+        use_html5_location: false,
+        session_timeout: 5
+      },
+      start: function( data ) {
+        document.getElementsByTagName('pre')[0].innerHTML = JSONf.stringify( data, undefined, 2 );
+      }
+    };
   </script> 
   <script src="session.js"></script>
 </body>
