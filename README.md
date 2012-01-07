@@ -7,7 +7,7 @@ To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
-<a href="http://codejoust.github.com/session.js/">Live Demo</a>
+[Live Demo](http://go.iain.in/sessionjslivedemo01)
 
 To add more fields, add or remove included modules and options near the bottom of the js file.
 
