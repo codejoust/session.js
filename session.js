@@ -10,8 +10,8 @@
   var opts = {
     use_html5_location: false,
     // use html5 location -- this _ONLY_ return lat/long, not an city/address
-    ipinfodb_key: null,
-    // attempts to use ipinfodb if provided a valid key -- get a key at http://ipinfodb.com/register.php
+    ipinfodb_key: false,
+    // attempts to use ipinfodb if provided an API key -- get a key at http://ipinfodb.com/register.php
     gapi_location: true,
     // leaving true allows for fallback for both the html5 location and the ipinfodb
     session_days: 32,
@@ -279,7 +279,7 @@
           } else {
             if (opts.gapi_location){
               return modules.gapi()(cb);
-            } else { cb({err: true, source: 'ipinfodb'}); }
+            } else { cb({err: true, source: 'ipinfodb', err_msg: data['statusMessage']}); }
           }
         }
         utils.embed_script('http://api.ipinfodb.com/v3/ip-city/?key='+ api_key +'&format=json&callback=ipinfocb');
@@ -304,7 +304,7 @@
       } else if (opts.gapi_location){
         session_loader.modules['location'] = modules.gapi_location();
       }
-      // Setup session Object
+      // Setup session object
       var asyncs = 0, check_async = function(){;
         if (asyncs == 0){ win.session_loaded && win.session_loaded(win.session); }
       };
