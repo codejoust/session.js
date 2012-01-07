@@ -9,7 +9,7 @@ For async loading, use the window.session_loaded callback.
 
 [Live Demo](http://go.iain.in/sessionjslivedemo01)
 
-To add more fields, add or remove included modules and options near the bottom of the js file.
+Configurable <a href="#options">options</a> are below.
 
 ### Usage:
 
@@ -87,10 +87,12 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
   }
 }
 ```
-
+<a name="options" />
 ### Options:
 Set `window.session_opts` before including `session.js` to change options.
 Default options are shown below.
+
+ipinfodb.com location [demo](http://codejoust.github.com/session.js/ipinfodb_demo.html).
 
 ```js
 window.session_opts = {
