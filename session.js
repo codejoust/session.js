@@ -223,9 +223,10 @@
           {nm: "Baidu", host:"baidu.com", query:"wd"},
         ];
         utils.find(engines, function(engine){
-          if (sess.referrer_info.host.indexOf(engine.host) != -1 && sess.referrer_info.qs[engine.query]){
+          if (sess.referrer_info.host.indexOf(engine.host) != -1){
             sess.search.engine = engine.nm;
-            sess.search.query  = engine.query;
+            sess.search.query  = sess.referrer_info.qs[engine.query];
+            sess.search.terms  = sess.search.query.split(' ');
             return true;
           }
         });
