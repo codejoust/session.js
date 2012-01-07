@@ -179,8 +179,8 @@
       var elem=doc.documentElement, doc_body=doc.getElementsByTagName('body')[0], agent = navigator.userAgent;
       device.viewport.width=(win.innerWidth||elem.clientWidth||doc_body.clientWidth);
       device.viewport.height=(win.innerHeight||elem.clientHeight||doc_body.clientHeight);
-      device.is_phone  = !!(agent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i));
       device.is_tablet = !!(agent.match(/(iPad|SCH-I800|xoom|kindle)/i));
+      device.is_phone  = !device.is_tablet && !!(agent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i));
       device.is_mobile = device.is_tablet || device.is_phone;
       return device;
     },
