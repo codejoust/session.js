@@ -28,7 +28,7 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
 
 ```js
 {
-  "api_version": 0.2,
+  "api_version": 0.3,
   "locale": {
     "country": "us",
     "lang": "en"
