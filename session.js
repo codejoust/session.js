@@ -12,23 +12,23 @@
   var options = {
     // Use the HTML5 Geolocation API
     // this ONLY returns lat & long, no city/address
-    HTML5Location:  false,
+    use_html5_location: false,
     // Attempts to use IPInfoDB if provided a valid key
     // get a key at http://ipinfodb.com/register.php
-    IPInfoDBKey:    false,
+    ipinfodb_key: false,
     // Leaving true allows for fallback for both
     // the HTML5 location and the IPInfoDB
-    GAPILocation:   true,
+    gapi_location: true,
     // Name of the location cookie
     //   - WARNING: different providers use the same cookie
     //   - if switching providers, remember to use another cookie or provide checks for old cookies
-    locationCookie: "location",
+    location_cookie: "location",
     // Location cookie expiration in hours
-    locationCookieTimeout: 2,
+    location_cookie_timeout: 2,
     // Session expiration in days
-    sessionTimeout: 32,
+    session_timeout: 32,
     // Session cookie name
-    sessionCookie: "first_session"
+    session_cookie: "first_session"
   };
   
   
@@ -41,31 +41,31 @@
     }
     // Modules to run
     this.modules = {
-      apiVersion: 0.3,
+      api_version: 0.3,
       locale: modules.locale(),
-      currentSession: modules.session(),
-      originalSession: modules.session(
-        options.sessionCookie,
-        options.sessionTimeout * 24 * 60 * 60 * 1000
+      current_session: modules.session(),
+      original_session: modules.session(
+        options.session_cookie,
+        options.session_timeout * 24 * 60 * 60 * 1000
       ),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
     };
     // Location switch
-    if( options.HTML5Location ) {
-      this.modules.location = modules.HTML5Location();
-    } else if( options.IPInfoDBKey ) {
-      this.modules.location = modules.IPInfoDBLocation( options.IPInfoDBKey );
-    } else if( options.GAPILocation ) {
-      this.modules.location = modules.GAPILocation();
+    if( options.use_html5_location ) {
+      this.modules.location = modules.use_html5_location();
+    } else if( options.ipinfodb_key ) {
+      this.modules.location = modules.ipinfodb_location( options.ipinfodb_key );
+    } else if( options.gapi_location ) {
+      this.modules.location = modules.gapi_location();
     }
     // Cache window.session.start
     if( window.session && window.session.start )
       var start = window.session.start;
     // Set up checking, if all modules are ready
     var asynchs = 0, module, result, self = this,
-        checkAsynch = function() {
+        check_asynch = function() {
           if( asynchs === 0 ) {
             // Map over results
             window.session = self.modules;
@@ -82,7 +82,7 @@
           module( function( data ) {
             self.modules[name] = data;
             asynchs--;
-            checkAsynch();
+            check_asynch();
           });
         }
         catch( error ) {
@@ -91,7 +91,7 @@
         }
       } else self.modules[name] = module;
     }
-    checkAsynch();
+    check_asynch();
   };
   
   
@@ -112,7 +112,7 @@
         for( var i = 0; i < data.length; i++ ) {
           var dataString = data[i].string,
               dataProp   = data[i].prop;
-          this.versionString = data[i].versionSearch || data[i].identity;
+          this.version_string = data[i].versionSearch || data[i].identity;
           if( dataString ) {
             if( dataString.indexOf( data[i].subString ) != -1 )
               return data[i].identity;
@@ -123,10 +123,10 @@
       }
       else {
         // search for version number
-        var index = data.indexOf( this.versionString );
+        var index = data.indexOf( this.version_string );
         if( index == -1 ) return;
         return parseFloat(
-          data.substr( index + this.versionString.length + 1 )
+          data.substr( index + this.version_string.length + 1 )
         );
       }
     },
@@ -211,7 +211,7 @@
     
     plugins: function() {
       
-      var checkPlugin = function( name ) {
+      var check_plugin = function( name ) {
         if( navigator.plugins ) {
           var plugin, i = 0, length = navigator.plugins.length;
           for( ; i < length; i++ ) {
@@ -225,10 +225,10 @@
       };
       
       return {
-        flash:       checkPlugin( "flash" ),
-        silverlight: checkPlugin( "silverlight" ),
-        java:        checkPlugin( "java" ),
-        quicktime:   checkPlugin( "quicktime" )
+        flash:       check_plugin( "flash" ),
+        silverlight: check_plugin( "silverlight" ),
+        java:        check_plugin( "java" ),
+        quicktime:   check_plugin( "quicktime" )
       };
       
     },
@@ -238,7 +238,7 @@
       var session = null;
       
       if( typeof cookie === "string" )
-        session = util.getCookie( cookie );
+        session = util.get_cookie( cookie );
       
       if( session === null ) {
         
@@ -249,14 +249,14 @@
           url: window.location.href,
           path: window.location.pathname,
           referrer: document.referrer,
-          referrer_info: util.parseUrl( document.referrer ),
+          referrer_info: util.parse_url( document.referrer ),
           search: {
             engine: null,
             query:  null
           }
         };
         
-        var searchEngines = [
+        var search_engines = [
           { name: "Google", host: "google", query: "q" },
           { name: "Bing", host: "bing.com", query: "q" },
           { name: "Yahoo", host: "search.yahoo", query: "p" },
@@ -265,11 +265,11 @@
           { name: "Baidu", host: "baidu.com", query: "wd" }
         ];
         
-        var length = searchEngines.length,
+        var length = search_engines.length,
             engine, match, i = 0;
         
         for( ; i < length; i++ ) {
-          engine = searchEngines[i];
+          engine = search_engines[i];
           if( session.referrer_info.host.indexOf( engine.host ) !== -1 ) {
             session.search.engine = engine.name;
             session.search.query  = session.referrer_info.query[engine.query];
@@ -292,33 +292,33 @@
         
       } else {
         session = json.parse( session );
-        session.lastVisit = new Date().getTime();
+        session.last_visit = new Date().getTime();
         session.visits++;
       }
       
       if( typeof cookie === "string" )
-        util.setCookie( cookie, json.stringify( session ), expires );
+        util.set_cookie( cookie, json.stringify( session ), expires );
       
       return session;
       
     },
     
-    HTML5Location: function() {
+    use_html5_location: function() {
       return function( callback ) {
         navigator.geolocation.getCurrentPosition( function( position ) {
           position.source = 'HTML5';
           callback( position );
         }, function( error ) {
-          if( options.GAPILocation ) modules.GAPILocation()( callback );
+          if( options.gapi_location ) modules.gapi_location()( callback );
           else callback({ error: true, source: 'HTML5' });
         });
       };
     },
     
-    GAPILocation: function() {
+    gapi_location: function() {
       return function( callback ) {
         var location = null;
-        if( !util.getCookie( options.locationCookie ) ) {
+        if( !util.get_cookie( options.location_cookie ) ) {
           window.gloaderReady = function() {
             if( "google" in window ) {
               if( window.google.loader.ClientLocation ) {
@@ -328,42 +328,42 @@
               else {
                 callback({ error: true, source: "google" });
               }
-              util.setCookie(
-                options.locationCookie,
+              util.set_cookie(
+                options.location_cookie,
                 json.stringify( window.google.loader.ClientLocation ),
-                options.locationCookieTimeout * 60 * 60 * 1000
+                options.location_cookie_timeout * 60 * 60 * 1000
               );
             }
           };
-          util.loadScript( "https://www.google.com/jsapi?callback=gloaderReady" );
+          util.embed_script( "https://www.google.com/jsapi?callback=gloaderReady" );
         }
         else {
-          callback( json.parse( util.getCookie( options.locationCookie ) ) );
+          callback( json.parse( util.get_cookie( options.location_cookie ) ) );
         }
       };
     },
     
-    IPInfoDBLocation: function( apiKey ) {
+    ipinfodb_location: function( apiKey ) {
       return function( callback ) {
-        var locationCookie = util.getCookie( options.locationCookie );
-        if( locationCookie )
-          return json.parse( locationCookie );
+        var location_cookie = util.get_cookie( options.location_cookie );
+        if( location_cookie )
+          return json.parse( location_cookie );
         window.IPInfoReady = function( data ) {
           if( data.statusCode === "OK" ) {
             data.source = "IPInfoDB";
-            util.setCookie(
-              options.locationCookie,
+            util.set_cookie(
+              options.location_cookie,
               json.stringify( data ),
-              options.locationCookie * 60 * 60 * 1000
+              options.location_cookie * 60 * 60 * 1000
             );
             callback( data );
           }
           else {
-            if( options.GAPILocation ) return modules.GAPILocation()(callback);
+            if( options.gapi_location ) return modules.gapi_location()(callback);
             else callback({ error: true, source: "IPInfoDB", message: data.statusMessage });
           }
         };
-        util.loadScript(
+        util.embed_script(
           "http://api.ipinfodb.com/v3/ip-city/?key=" + apiKey + "&format=json&callback=ipinfocb"
         );
       };
@@ -379,7 +379,7 @@
       return string.replace( /^\s+|\s+$/g, "" );
     },
     
-    parseUrl: function( string ) {
+    parse_url: function( string ) {
       
       var query, a = document.createElement( "a" );
           a.href = string;
@@ -406,7 +406,7 @@
       }
     },
     
-    setCookie: function( name, value, expires, path ) {
+    set_cookie: function( name, value, expires, path ) {
       // set path
       path = path ? "; path=" + path : "; path=/";
       // calculate expiration date
@@ -420,7 +420,7 @@
       return document.cookie = name + "=" + value + expires + path;
     },
     
-    getCookie: function( name ) {
+    get_cookie: function( name ) {
       var cookies = document.cookie.split( ';' ),
           cookie, i = 0, length = cookies.length;
       for( ; i < length; i++ ) {
@@ -431,7 +431,7 @@
       return null;
     },
     
-    loadScript: function( url ) {
+    embed_script: function( url ) {
       var element  = document.createElement( "script" );
       element.type = "text/javascript";
       element.src  = url;
