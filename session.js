@@ -35,8 +35,10 @@
   // Session object
   var session = function() {
     // Merge options
-    if( window.session && window.session.options )
-      util.merge( options, window.session.options );
+    if( window.session && window.session.options ) {
+      for( option in window.session.options )
+        options[option] = window.session.options[option];
+    }
     // Modules to run
     this.modules = {
       apiVersion: 0.3,
@@ -411,31 +413,6 @@
       element.type = "text/javascript";
       element.src  = url;
       document.getElementsByTagName( "body" )[0].appendChild( element );
-    },
-    
-    // Object merge, stolen from jQuery ($.fn.extend)
-    merge: function() {
-      
-      var options, name, copy,
-          target = arguments[0] || {},
-          length = arguments.length,
-          i      = 1;
-      
-      for( ; i < length; i++ ) {
-        // Only deal with non-null/undefined values
-        if( ( options = arguments[i] ) != null ) {
-          // Extend the base object
-          for( name in options ) {
-            copy = options[name];
-            // Prevent never-ending loop
-            if( target === copy ) continue;
-            // Don't bring in undefined values
-            if( copy !== void 0 ) target[name] = copy;
-          }
-        }
-      }
-      // Return the modified object
-      return target;
     }
     
   };
