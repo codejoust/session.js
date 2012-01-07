@@ -244,6 +244,12 @@
         
         session = {
           visits: 1,
+          start: new Date().getTime(),
+          last_visit: new Date().getTime(),
+          url: window.location.href,
+          path: window.location.pathname,
+          referrer: document.referrer,
+          referrer_info: util.parseUrl( document.referrer ),
           search: {
             engine: null,
             query:  null
@@ -251,29 +257,24 @@
         };
         
         var searchEngines = [
-          { name: "Google", url: "https?://(?:www\.)?(?:images.)?google.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "q" },
-          { name: "Bing", url: "https?://(?:www\.)?bing.com", query: "q" },
-          { name: "Yahoo", url: "https?://(?:www\.)?(?:.+.)?search.yahoo.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "p" },
-          { name: "AOL", url: "https?://(?:www\.)?(?:aol)?search.aol.(?:com|[a-z]{2}|com?.[a-z]{2})", query: "q" },
-          { name: "Ask", url: "https?://(?:www\.)?(?:[a-z]+.)?ask.com", query: "q" },
-          { name: "Baidu", url: "https?://(?:www\.)?baidu.com", query: "wd" }
+          { name: "Google", host: "google", query: "q" },
+          { name: "Bing", host: "bing.com", query: "q" },
+          { name: "Yahoo", host: "search.yahoo", query: "p" },
+          { name: "AOL", host: "search.aol", query: "q" },
+          { name: "Ask", host: "ask.com", query: "q" },
+          { name: "Baidu", host: "baidu.com", query: "wd" }
         ];
         
-        var engine, match, i = 0,
-            length = searchEngines.length;
+        var length = searchEngines.length,
+            engine, match, i = 0;
         
         for( ; i < length; i++ ) {
-          
           engine = searchEngines[i];
-          
-          match = new RegExp( engine.url + "/.*[?&]" + engine.query + "=([^&]+)" );
-          match = match.exec( document.referrer );
-          
-          if( match ) {
+          if( session.referrer_info.host.indexOf( engine.host ) !== -1 ) {
             session.search.engine = engine.name;
-            session.search.query  = engine.query;
+            session.search.query  = session.referrer_info.query[engine.query];
+            session.search.terms  = session.search.query.split( " " );
           }
-          
         }
         
         if( session.search.engine === null ) {
@@ -283,16 +284,11 @@
           
           if( match ) {
             session.search.engine = "Unknown";
-            session.search.query  = match;
+            session.search.query  = decodeURI( match[1] );
+            session.search.terms  = session.search.query.split( " " );
           }
           
         }
-        
-        session.referrer  = document.referrer;
-        session.url       = window.location.href;
-        session.path      = window.location.pathname;
-        session.start     = new Date().getTime();
-        session.lastVisit = session.start;
         
       } else {
         session = json.parse( session );
