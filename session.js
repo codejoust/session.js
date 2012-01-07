@@ -8,10 +8,28 @@
  */
 (function(win, doc){
   var opts = {
-      enable_location: true,
-      session_days: 32
+    use_html5_location: false,
+    // use html5 location -- this _ONLY_ return lat/long, not an city/address
+    ipinfodb_key: null,
+    // attempts to use ipinfodb if provided a valid key -- get a key at http://ipinfodb.com/register.php
+    gapi_location: true,
+    // leaving true allows for fallback for both the html5 location and the ipinfodb
+    session_days: 32,
+    // how many days session information is kept in a cookie
+    location_cookie_name: 'location',
+    // the name of the location cookie
+    //   -- warning: different providers use the same cookie
+    //   -- if switching providers, remember to use another cookie or provide checks for old cookies
+    session_cookie_name: 'first_session',
+    // session cookie name
+    location_cookie_hours: 2
+    // lifetime of the location cookie
   }
-  if ('session_opts' in window){ opts = session_opts; }
+  if ('session_opts' in window){
+    for (opt in window.session_opts){
+      opts[opt] = window.session_opts[opt];
+    }
+  }
   var BrowserDetect = { // from quirksmode.org/js/detect.html
   	detect_browser: function () {
   		return {browser: this.searchString(this.dataBrowser),
@@ -60,7 +78,7 @@
   	]
   };
   
-  var utils = {
+  var utils = window.utils = {
     stringify_json: JSON.stringify || function (obj) {
       var t = typeof (obj);
       if (t != "object" || obj === null) {
@@ -137,27 +155,16 @@
       return result;
     },
     is_undef: function(obj){ return obj === void 0; }, // from underscore.js
+    embed_script: function(url){
+      var scr = document.createElement('script');
+      scr.type = 'text/javascript';
+      scr.src = url;
+      document.getElementsByTagName('head')[0].appendChild(scr);
+    }
   };
 
   var modules = {
-    location: function(cookie_name){
-      var embed_script = function(url){
-        var scr = document.createElement('script');
-        scr.type = 'text/javascript';
-        scr.src = url;
-        document.getElementsByTagName('head')[0].appendChild(scr);
-      }
-      return function(cb){
-        var loc = null;
-        if (!utils.get_cookie(cookie_name)){
-          win.gloader_loaded = function() {
-            if ('google' in window) {
-              cb(win.google.loader.ClientLocation);
-              utils.set_cookie(cookie_name,utils.stringify_json(win.google.loader.ClientLocation), 1000 * 60 * 60 * 2);} }
-          embed_script('https://www.google.com/jsapi?callback=gloader_loaded');
-        } else { cb(utils.parse_json(utils.get_cookie(cookie_name))); }
-      }
-    },
+    
     locale: function(){
       var res = utils.search(['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], function(prop_name){
         return navigator[prop_name];
@@ -237,23 +244,75 @@
         utils.set_cookie(cookie_name, JSON.stringify(sess), expires)
       }
       return sess;
+    },
+    html5_location: function(){
+      return function(cb){
+        navigator.geolocation.getCurrentPosition(function(position){
+          position['source'] = 'html5';
+          return position
+        }, function(err_msg){
+          if (opts.gapi_location){ modules.gapi_location()(cb); }
+          else { cb({err: true, source: 'html5'}); }
+        });
+        
+      }
+    },
+    gapi_location: function(){
+      return function(cb){
+        var loc = null;
+        if (!utils.get_cookie(opts.location_cookie_name)){
+          win.gloader_loaded = function(){
+            if ('google' in window) {
+              if (win.google.loader.ClientLocation){
+                win.google.loader.ClientLocation.source = 'google';
+                cb(win.google.loader.ClientLocation);
+              } else {
+                cb({err: true, source: 'google'})
+              }
+              utils.set_cookie(opts.location_cookie_name,utils.stringify_json(win.google.loader.ClientLocation), 1000 * 60 * 60 * opts.location_cookie_hours);} }
+          utils.embed_script('https://www.google.com/jsapi?callback=gloader_loaded');
+        } else { cb(utils.parse_json(utils.get_cookie(opts.location_cookie_name))); }
+      }
+    },
+    ipinfodb_location: function(api_key){
+      return function(cb){
+        var loc_cookie = utils.get_cookie(opts.location_cookie_name);
+        if (loc_cookie){ return cb(JSON.parse(loc_cookie)); }
+        win.ipinfocb = function(data){
+          if (data['statusCode'] == 'OK'){
+            data['source'] = 'ipinfodb';
+            utils.set_cookie(opts.location_cookie_name, JSON.stringify(data), 1000 * 60 * 60 * opts.location_cookie_hours);
+            cb(data);
+          } else {
+            if (opts.gapi_location){
+              return modules.gapi()(cb);
+            } else { cb({err: true, source: 'ipinfodb'}); }
+          }
+        }
+        utils.embed_script('http://api.ipinfodb.com/v3/ip-city/?key='+ api_key +'&format=json&callback=ipinfocb');
+      }
     }
   }
   var session_loader = {
     modules: {
       locale: modules.locale(),
       cur_session: modules.session(),
-      orig_session: modules.session('first_session', 1000 * 60 * 60 * 24 * (opts.session_days || 32)),
+      orig_session: modules.session(opts.session_cookie_name, 1000 * 60 * 60 * 24 * opts.session_days),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
     },
     init: function(){
-      if (opts.enable_location){
-        session_loader.modules['location'] = modules.location('location');
+      // location switch
+      if (opts.use_html5_location){
+        session_loader.modules['location'] = modules.html5_location();
+      } else if (opts.ipinfodb_key){
+        session_loader.modules['location'] = modules.ipinfodb_location(opts.ipinfodb_key);
+      } else if (opts.gapi_location){
+        session_loader.modules['location'] = modules.gapi_location();
       }
       // Setup session Object
-      var asyncs = 0, check_async = function(){
+      var asyncs = 0, check_async = function(){;
         if (asyncs == 0){ win.session_loaded && win.session_loaded(win.session); }
       };
       win.modules = session_loader.modules;
@@ -280,6 +339,7 @@
           }
         })(module_name);
       }
+      check_async();
     }
   };
   session_loader.init();
