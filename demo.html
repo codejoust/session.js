@@ -140,8 +140,8 @@
   <script>
     window.session = {
       options: {
-        HTML5Location: false,
-        SessionTimeout: 5
+        use_html5_location: false,
+        session_timeout: 5
       },
       start: function( data ) {
         document.getElementsByTagName('pre')[0].innerHTML = JSONf.stringify( data, undefined, 2 );
