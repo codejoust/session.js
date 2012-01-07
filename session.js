@@ -93,7 +93,7 @@
         } return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
       }
     },
-    parse_json: (JSON.parse || function (str) {
+    parse_json: (JSON.parse || function ( data ) {
       if( typeof data !== "string" || !data )
         return null;
       return ( new Function( "return " + data ) )();
