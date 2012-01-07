@@ -31,7 +31,7 @@
     }
   }
   var BrowserDetect = { // from quirksmode.org/js/detect.html
-    detect_browser: function () {
+    detect_browser: function(){
       return {browser: this.searchString(this.dataBrowser),
               version: this.searchVersion(navigator.userAgent) || this.searchVersion(navigator.appVersion),
               OS: this.searchString(this.dataOS)};
@@ -66,17 +66,15 @@
       {  string: navigator.userAgent,  subString: "MSIE",  identity: "Explorer",  versionSearch: "MSIE"  },
       {  string: navigator.userAgent,  subString: "Gecko",  identity: "Mozilla",  versionSearch: "rv"    },
       {     // for older Netscapes (4-)
-        string: navigator.userAgent, subString: "Mozilla", identity: "Netscape",  versionSearch: "Mozilla" }
-    ],
-    dataOS : [ {
-        string: navigator.platform, subString: "Win", identity: "Windows"
-      }, {
-        string: navigator.platform,  subString: "Mac",  identity: "Mac"  },
+        string: navigator.userAgent, subString: "Mozilla", identity: "Netscape",  versionSearch: "Mozilla" } ],
+    dataOS : [
+      { string: navigator.platform, subString: "Win", identity: "Windows"},
+      { string: navigator.platform,  subString: "Mac",  identity: "Mac"  },
       { string: navigator.userAgent,subString: "iPhone", identity: "iPhone/iPod" },
       { string: navigator.userAgent,subString: 'iPad', identitiy: 'iPad'},
-      {  string: navigator.platform,  subString: "Linux",  identity: "Linux"  }
-    ]
-  };
+      { string: navigator.platform,  subString: "Linux",  identity: "Linux"  },
+      { string: navigator.userAgent, subString: 'Android', identity: 'Android'}]
+    };
   
   var utils = {
     stringify_json: JSON.stringify || function (obj) {
@@ -168,8 +166,8 @@
         return navigator[prop_name];
       }), res_parts = res.split('-');
       if (res_parts.length == 2){
-        return {country: res_parts[1], lang: res_parts[0]}
-      } else { return {lang: res}; }
+        return {country: res_parts[1].toLowerCase(), lang: res_parts[0].toLowerCase()}
+      } else { return {lang: res.toLowerCase()}; }
     },
     browser: function(){
       return BrowserDetect.detect_browser();
