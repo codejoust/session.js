@@ -137,24 +137,8 @@
       return result;
     },
     is_undef: function(obj){ return obj === void 0; }, // from underscore.js
-    try_obj: function(tries, obj){
-      for (var i = 0; i < tries.length; i++){
-        obj_try = obj[tries[i]];
-        if (!utils.is_undef(obj_try) && obj_try != null && obj_try != ''){
-          return obj_try;
-        }
-      }
-      return null;
-    },
-    try_props: function(props){
-      for(var i = 0; i < props.length; i++){
-        if (!utils.is_undef(props[i]) && props[i] != null && props[i] != ''){
-          return props[i];
-        }
-      }
-    }
   };
-    
+
   var modules = {
     location: function(cookie_name){
       var embed_script = function(url){
@@ -278,7 +262,7 @@
         (function(module_name){
           var module_runner = session_loader.modules[module_name];
           if (typeof(module_runner) === 'function'){
-            //try {
+            try {
               var ret = module_runner;
               if (typeof(ret) === 'function'){
                 asyncs++;
@@ -290,7 +274,7 @@
               } else {
                 win.session[module_name] = ret;
               }
-            //} catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
+            } catch (e) { if (typeof(console) !== 'undefined'){ console.log(e); } }
           } else {
             win.session[module_name] = module_runner;
           }
