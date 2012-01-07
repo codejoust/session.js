@@ -169,7 +169,7 @@
       }), res_parts = res.split('-');
       if (res_parts.length == 2){
         return {country: res_parts[1], lang: res_parts[0]}
-      } else { return {country: res} }
+      } else { return {lang: res}; }
     },
     browser: function(){
       return BrowserDetect.detect_browser();
