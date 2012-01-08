@@ -78,17 +78,17 @@
     for (var name in this.modules){
       module = self.modules[name];
       if(typeof module === "function"){
-        //try {
+        try {
           asynchs++;
           module(function(data){
             self.modules[name] = data;
             asynchs--;
             check_asynch();
           });
-        /*} catch(err){
+        } catch(err){
           if (win.console && typeof(console.log) === "function"){
             console.log(err); }
-        }*/
+        }
       } else {
         self.modules[name] = module;
       }
