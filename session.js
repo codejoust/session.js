@@ -332,27 +332,24 @@
         search:   a.search,
         query:    query }
     },
-    set_cookie: function(name, value, expires, path){
-      if (!doc.cookie || !name || !value){ return null; }
-      // set path
-      path = path ? "; path=" + path : "; path=/";
-      // calculate expiration date
-      if (expires) {
-        var date = new Date();
-        date.setTime(date.getTime() + expires);
-        expires = "; expires=" + date.toGMTString();
-      } else { expires = ""; }
-      // set cookie
-      return (doc.cookie = (name + "=" + encodeURIComponent(value) + expires + path));
+    set_cookie: function(cname, value, expires, options){ // from jquery.cookie.j
+      if (!doc.cookie || !cname || !value){ return null; }
+      if (!options){ var options = {}; }
+      if (value === null || value === undefined){ expires = -1; }
+      if (typeof expires === 'number') {
+        var days = expires, t = expires = new Date();
+        t.setDate(t.getDate() + days); }
+      return (document.cookie = [
+          encodeURIComponent(cname), '=',
+          options.raw ? value : encodeURIComponent(String(value)),
+          options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
+          options.path ? '; path=' + options.path : '',
+          options.domain ? '; domain=' + options.domain : '',
+          options.secure ? '; secure' : ''
+      ].join(''));
     },
-    get_cookie: function(cookie_name){ // from quirksmode.org
-      var nameEQ = cookie_name + "=";
-    	var ca = doc.cookie.split(';');
-    	for (var i = 0; i < ca.length; i++){
-    		var c = ca[i];
-    		while (c.charAt(0)==' '){ c = c.substring(1, c.length); }
-    		if (c.indexOf(nameEQ) == 0){ return decodeURIComponent(c.substring(nameEQ.length, c.length)); }
-    	} return null;
+    get_cookie: function(cookie_name, result){ // from jquery.cookie.js
+      return (result = new RegExp('(?:^|; )' + encodeURIComponent(cookie_name) + '=([^;]*)').exec(document.cookie)) ? decodeURIComponent(result[1]) : null;
     },
     embed_script: function(url){
       var element  = doc.createElement("script");
@@ -366,7 +363,8 @@
       delete obj.version; return ret;
     },
     get_obj: function(cookie_name){
-      var obj = JSON.parse(util.get_cookie(cookie_name));
+      var obj;
+      try { obj = JSON.parse(util.get_cookie(cookie_name)); } catch(e){};
       if (obj && obj.version == API_VERSION){
         delete obj.version; return obj;
       }
@@ -375,13 +373,11 @@
   
   // JSON
   var JSON = {
-    parse: (win.JSON && win.JSON.parse) || function(data) {
-      try {
+    parse: (win.JSON && win.JSON.parse) || function(data){
         if (typeof data !== "string" || !data){ return null; }
         return (new Function("return " + data))();
-      } catch (e){ return null; }
     },
-    stringify: (win.JSON && win.JSON.stringify) || function(object) {
+    stringify: (win.JSON && win.JSON.stringify) || function(object){
       var type = typeof object;
       if (type !== "object" || object === null) {
         if (type === "string"){ return '"' + object + '"'; }
