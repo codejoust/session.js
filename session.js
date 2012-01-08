@@ -21,15 +21,15 @@
     // Leaving true allows for fallback for both
     // the HTML5 location and the IPInfoDB
     gapi_location: true,
-    // Name of the location cookie
+    // Name of the location cookie (set blank to disable cookie)
     //   - WARNING: different providers use the same cookie
     //   - if switching providers, remember to use another cookie or provide checks for old cookies
     location_cookie: "location",
     // Location cookie expiration in hours
-    location_cookie_timeout: 2,
+    location_cookie_timeout: 5,
     // Session expiration in days
     session_timeout: 32,
-    // Session cookie name
+    // Session cookie name (set blank to disable cookie)
     session_cookie: "first_session"
   };
   
@@ -254,7 +254,7 @@
       util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
     },
-    html5_location: function() {
+    html5_location: function(){
       return function(callback){
         navigator.geolocation.getCurrentPosition(function(pos){
           pos.source = 'html5';
@@ -267,11 +267,11 @@
         });
       };
     },
-    gapi_location: function() {
+    gapi_location: function(){
       return function(callback){
         var location = util.get_obj(options.location_cookie);
         if (!location || location.source !== 'google'){
-          win.gloaderReady = function() {
+          win.gloader_ready = function() {
             if ("google" in win){
               if (win.google.loader.ClientLocation){
                 win.google.loader.ClientLocation.source = "google";
@@ -284,12 +284,12 @@
                 util.package_obj(win.google.loader.ClientLocation),
                 options.location_cookie_timeout * 60 * 60 * 1000);
             }}
-          util.embed_script("https://www.google.com/jsapi?callback=gloaderReady");
+          util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
         } else {
           callback(location);
         }}
     },
-    ipinfodb_location: function(apiKey){
+    ipinfodb_location: function(api_key){
       return function (callback){
         var location_cookie = util.get_obj(options.location_cookie);
         if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
@@ -305,7 +305,7 @@
             if (options.gapi_location){ return modules.gapi_location()(callback); }
             else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
           }}
-        util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + apiKey + "&format=json&callback=ipinfocb");
+        util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
       }}
   };
   
@@ -332,20 +332,18 @@
         search:   a.search,
         query:    query }
     },
-    set_cookie: function(cname, value, expires, options){ // from jquery.cookie.j
+    set_cookie: function(cname, value, expires, options){ // from jquery.cookie.js
       if (!doc.cookie || !cname || !value){ return null; }
       if (!options){ var options = {}; }
       if (value === null || value === undefined){ expires = -1; }
-      if (typeof expires === 'number') {
-        var days = expires, t = expires = new Date();
-        t.setDate(t.getDate() + days); }
+      if (expires){ options.expires = (new Date().getTime()) + expires; }
       return (document.cookie = [
           encodeURIComponent(cname), '=',
-          options.raw ? value : encodeURIComponent(String(value)),
-          options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
+          encodeURIComponent(String(value)),
+          options.expires ? '; expires=' + new Date(options.expires).toUTCString() : '', // use expires attribute, max-age is not supported by IE
           options.path ? '; path=' + options.path : '',
           options.domain ? '; domain=' + options.domain : '',
-          options.secure ? '; secure' : ''
+          (win.location && win.location.protocol === 'https:') ? '; secure' : ''
       ].join(''));
     },
     get_cookie: function(cookie_name, result){ // from jquery.cookie.js
