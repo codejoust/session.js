@@ -118,20 +118,20 @@
           } }
       // If the JSON object does not yet have a stringify met©hod, give it one.
       if (typeof JSONf.stringify !== 'function') {
-          JSONf.stringify = function (value, replacer, space) {
+          JSONf.stringify = function(value, replacer, space){
             // The stringify method takes a value and an optional replacer, and an optional
             // space parameter, and returns a JSON text. The replacer can be a function
             // that can replace values, or an array of strings that will select the keys.
             // A default replacer method can be provided. Use of the space parameter can
             // produce text that is more easily readable.
               var i; gap = ''; indent = '';
-              if (typeof space === 'number') {
+              if (typeof(space) === 'number') {
                   for (i = 0; i < space; i += 1) { indent += ' ';  }
               } else if (typeof space === 'string') { indent = space; }
               rep = replacer;
-              if (replacer && typeof replacer !== 'function' &&
-                      (typeof replacer !== 'object' ||
-                      typeof replacer.length !== 'number')) {
+              if (replacer && typeof(replacer) !== 'function' &&
+                      (typeof(replacer) !== 'object' ||
+                      typeof(replacer.length) !== 'number')) {
                   throw new Error('JSON.stringify'); }
               return str('', {'': value});
           } } }());

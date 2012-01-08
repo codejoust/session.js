@@ -1,12 +1,14 @@
 /**
- * session.js 0.3
+ * session.js 0.4.1
  * (c) 2012 Iain, CodeJoust
- * session is freely distributable under the MIT license.
+ * session.js is freely distributable under the MIT license.
  * Portions of session.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function( window, document ) {
+(function(win, doc){
+  // Changing the API Version invalidates olde cookies with previous api version tags.
+  var API_VERSION = 0.4;
   
   // Settings: defaults
   var options = {
@@ -14,7 +16,7 @@
     // this ONLY returns lat & long, no city/address
     use_html5_location: false,
     // Attempts to use IPInfoDB if provided a valid key
-    // get a key at http://ipinfodb.com/register.php
+    // Get a key at http://ipinfodb.com/register.php
     ipinfodb_key: false,
     // Leaving true allows for fallback for both
     // the HTML5 location and the IPInfoDB
@@ -31,65 +33,65 @@
     session_cookie: "first_session"
   };
   
-  
   // Session object
-  var session = function() {
+  var SessionRunner = function(){
     // Merge options
-    if( window.session && window.session.options ) {
-      for( option in window.session.options )
-        options[option] = window.session.options[option];
+    if(win.session && win.session.options) {
+      for (option in win.session.options){
+        options[option] = win.session.options[option]; }
     }
     // Modules to run
     this.modules = {
-      api_version: 0.3,
+      api_version: API_VERSION,
       locale: modules.locale(),
       current_session: modules.session(),
       original_session: modules.session(
         options.session_cookie,
-        options.session_timeout * 24 * 60 * 60 * 1000
-      ),
+        options.session_timeout * 24 * 60 * 60 * 1000),
       browser: modules.browser(),
       plugins: modules.plugins(),
       device: modules.device()
     };
     // Location switch
-    if( options.use_html5_location ) {
+    if (options.use_html5_location){
       this.modules.location = modules.html5_location();
-    } else if( options.ipinfodb_key ) {
-      this.modules.location = modules.ipinfodb_location( options.ipinfodb_key );
-    } else if( options.gapi_location ) {
+    } else if (options.ipinfodb_key){
+      this.modules.location = modules.ipinfodb_location(options.ipinfodb_key);
+    } else if (options.gapi_location){
       this.modules.location = modules.gapi_location();
     }
-    // Cache window.session.start
-    if( window.session && window.session.start )
-      var start = window.session.start;
+    // Cache win.session.start
+    if (win.session && win.session.start){
+      var start = win.session.start;
+    }
     // Set up checking, if all modules are ready
     var asynchs = 0, module, result, self = this,
-        check_asynch = function() {
-          if( asynchs === 0 ) {
-            // Map over results
-            window.session = self.modules;
-            // Run start calback
-            if( start ) start( self.modules );
-          }
-        };
-    // Run asynchronos methods
-    for( var name in this.modules ) {
+    check_asynch = function(){
+      if (asynchs === 0){
+        // Map over results
+        win.session = self.modules;
+        // Run start calback
+        if (start){ start(self.modules); }
+      }
+    };
+    // Run asynchronous methods
+    for (var name in this.modules){
       module = self.modules[name];
-      if( typeof module === "function" ) {
-        try {
+      if(typeof module === "function"){
+        //try {
           asynchs++;
-          module( function( data ) {
+          module(function(data){
             self.modules[name] = data;
             asynchs--;
             check_asynch();
           });
-        }
-        catch( error ) {
-          if( console && typeof console.log === "function" )
-            console.log( error );
-        }
-      } else self.modules[name] = module;
+        /*} catch(err){
+          if (win.console && typeof(console.log) === "function"){
+            console.log(err); }
+        }*/
+      } else {
+        self.modules[name] = module;
+      }
     }
     check_asynch();
   };
@@ -97,46 +99,40 @@
   
   // Browser (and OS) detection
   var browser = {
-    
-    detect: function() {
+    detect: function(){
       return {
-        browser: this.search( this.data.browser ),
-        version: this.search( navigator.userAgent ) || this.search( navigator.appVersion ),
-        os: this.search( this.data.os )
-      };
-    },
-    
-    search: function( data ) {
-      if( typeof data === "object" ) {
+        browser: this.search(this.data.browser),
+        version: this.search(navigator.userAgent) || this.search(navigator.appVersion),
+        os: this.search(this.data.os)
+    } },
+    search: function(data) {
+      if (typeof data === "object"){
         // search for string match
-        for( var i = 0; i < data.length; i++ ) {
+        for(var i = 0; i < data.length; i++) {
           var dataString = data[i].string,
               dataProp   = data[i].prop;
           this.version_string = data[i].versionSearch || data[i].identity;
-          if( dataString ) {
-            if( dataString.indexOf( data[i].subString ) != -1 )
+          if (dataString){
+            if (dataString.indexOf(data[i].subString) != -1){
               return data[i].identity;
-          }
-          else if( dataProp )
+            }
+          } else if (dataProp){
             return data[i].identity;
+          }
         }
-      }
-      else {
+      } else {
         // search for version number
-        var index = data.indexOf( this.version_string );
-        if( index == -1 ) return;
-        return parseFloat(
-          data.substr( index + this.version_string.length + 1 )
-        );
+        var index = data.indexOf(this.version_string);
+        if (index == -1) return;
+        return parseFloat(data.substr(index + this.version_string.length + 1));
       }
     },
-    
     data: {
       browser: [
         { string: navigator.userAgent, subString: "Chrome", identity: "Chrome" },
         { string: navigator.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
         { string: navigator.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
-        { prop: window.opera, identity: "Opera", versionSearch: "Version" },
+        { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
         { string: navigator.vendor, subString: "iCab",identity: "iCab" },
         { string: navigator.vendor, subString: "KDE", identity: "Konqueror" },
         { string: navigator.userAgent, subString: "Firefox", identity: "Firefox" },
@@ -153,109 +149,72 @@
         { string: navigator.userAgent, subString: "iPad", identitiy: "iPad" },
         { string: navigator.platform, subString: "Linux", identity: "Linux" },
         { string: navigator.userAgent, subString: "Android", identity: "Android" }
-      ]
-    }
-    
+      ]}
   };
   
-  
   var modules = {
-    
     browser: function() {
       return browser.detect();
     },
-    
     locale: function() {
       var lang = (
         navigator.language        ||
         navigator.browserLanguage ||
         navigator.systemLanguage  ||
         navigator.userLanguage
-      ).split( "-" );
+      ).split("-");
       return {
         country: lang[1].toLowerCase(),
         lang: lang[0].toLowerCase()
       };
     },
-    
     device: function() {
-      
       var device = {
         screen: {
           width: screen.width,
           height: screen.height
         }
       };
-      
-      var html = document.documentElement,
-          body = document.getElementsByTagName( "body" )[0];
-      
+      var html = doc.documentElement,
+          body = doc.getElementsByTagName("body")[0];
       device.viewport = {
-        width:  window.innerWidth  || html.clientWidth  || body.clientWidth,
-        height: window.innerHeight || html.clientHeight || body.clientHeight
+        width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
+        height: win.innerHeight || html.clientHeight || body.clientHeight
       };
-      
-      device.isTablet = !!navigator.userAgent.match(
-        /(iPad|SCH-I800|xoom|kindle)/i
-      );
-      
-      device.isPhone = !device.isTablet && !!navigator.userAgent.match(
-        /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i
-      );
-      
-      device.isMobile = device.isTablet || device.isPhone;
-      
+      device.is_tablet = !!navigator.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
+      device.is_phone = !device.isTablet && !!navigator.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
+      device.is_mobile = (device.is_tablet || device.is_phone);
       return device;
-      
     },
-    
-    plugins: function() {
-      
-      var check_plugin = function( name ) {
-        if( navigator.plugins ) {
+    plugins: function(){
+      var check_plugin = function(name){
+        if (navigator.plugins){
           var plugin, i = 0, length = navigator.plugins.length;
-          for( ; i < length; i++ ) {
+          for (; i < length; i++ ){
             plugin = navigator.plugins[i];
-            if( plugin && plugin.name && plugin.name.toLowerCase().indexOf( name ) !== -1 )
+            if (plugin && plugin.name && plugin.name.toLowerCase().indexOf(name) !== -1){
               return true;
-          }
+            } }
           return false;
-        }
-        return void 0;
-      };
-      
+        } return false;
+      }
       return {
-        flash:       check_plugin( "flash" ),
-        silverlight: check_plugin( "silverlight" ),
-        java:        check_plugin( "java" ),
-        quicktime:   check_plugin( "quicktime" )
-      };
-      
+        flash:       check_plugin("flash"),
+        silverlight: check_plugin("silverlight"),
+        java:        check_plugin("java"),
+        quicktime:   check_plugin("quicktime")
+      }; 
     },
-    
-    session: function( cookie, expires ) {
-      
-      var session = null;
-      
-      if( typeof cookie === "string" )
-        session = util.get_cookie( cookie );
-      
-      if( session === null ) {
-        
+    session: function (cookie, expires){
+      var session = util.get_obj(cookie);
+      if (session == null){
         session = {
           visits: 1,
-          start: new Date().getTime(),
-          last_visit: new Date().getTime(),
-          url: window.location.href,
-          path: window.location.pathname,
-          referrer: document.referrer,
-          referrer_info: util.parse_url( document.referrer ),
-          search: {
-            engine: null,
-            query:  null
-          }
+          start: new Date().getTime(), last_visit: new Date().getTime(),
+          url: win.location.href, path: win.location.pathname,
+          referrer: doc.referrer, referrer_info: util.parse_url(doc.referrer),
+          search: { engine: null, query: null }
         };
-        
         var search_engines = [
           { name: "Google", host: "google", query: "q" },
           { name: "Bing", host: "bing.com", query: "q" },
@@ -263,219 +222,181 @@
           { name: "AOL", host: "search.aol", query: "q" },
           { name: "Ask", host: "ask.com", query: "q" },
           { name: "Baidu", host: "baidu.com", query: "wd" }
-        ];
-        
-        var length = search_engines.length,
-            engine, match, i = 0;
-        
-        for( ; i < length; i++ ) {
+        ], length = search_engines.length,
+           engine, match, i = 0,
+           fallbacks = 'q query term p wd query text'.split(' ');
+        for (i = 0; i < length; i++){
           engine = search_engines[i];
-          if( session.referrer_info.host.indexOf( engine.host ) !== -1 ) {
+          if (session.referrer_info.host.indexOf(engine.host) !== -1){
             session.search.engine = engine.name;
             session.search.query  = session.referrer_info.query[engine.query];
-            session.search.terms  = session.search.query.split( " " );
+            session.search.terms  = session.search.query ? session.search.query.split(" ") : null;
+            break;
           }
         }
-        
-        if( session.search.engine === null ) {
-          
-          match = new RegExp( "[?&](?:q|query|term|p|wd|query|text)=([^&]+)" );
-          match = match.exec( document.referrer );
-          
-          if( match ) {
-            session.search.engine = "Unknown";
-            session.search.query  = decodeURI( match[1] );
-            session.search.terms  = session.search.query.split( " " );
-          }
-          
+        if (session.search.engine === null && session.referrer_info.search.length > 1){
+          for (i = 0; i < fallbacks.length; i++){
+            var terms = session.referrer_info.query[fallbacks[i]];
+            if (terms){
+              session.search.engine = "Unknown";
+              session.search.query  = terms; session.search.terms  = terms.split(" ");
+              break;
+            }
+          } 
         }
-        
       } else {
-        session = json.parse( session );
         session.last_visit = new Date().getTime();
         session.visits++;
       }
-      
-      if( typeof cookie === "string" )
-        util.set_cookie( cookie, json.stringify( session ), expires );
-      
+      util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
-      
     },
-    
     html5_location: function() {
-      return function( callback ) {
-        navigator.geolocation.getCurrentPosition( function( position ) {
-          position.source = 'HTML5';
-          callback( position );
-        }, function( error ) {
-          if( options.gapi_location ) modules.gapi_location()( callback );
-          else callback({ error: true, source: 'HTML5' });
+      return function(callback){
+        navigator.geolocation.getCurrentPosition(function(pos){
+          pos.source = 'html5';
+          callback(pos);
+        }, function(err) {
+          if (options.gapi_location){
+            modules.gapi_location()(callback);
+          } else {
+            callback({error: true, source: 'html5'}); }
         });
       };
     },
-    
     gapi_location: function() {
-      return function( callback ) {
-        var location = null;
-        if( !util.get_cookie( options.location_cookie ) ) {
-          window.gloaderReady = function() {
-            if( "google" in window ) {
-              if( window.google.loader.ClientLocation ) {
-                window.google.loader.ClientLocation.source = "google";
-                callback( window.google.loader.ClientLocation );
-              }
-              else {
-                callback({ error: true, source: "google" });
+      return function(callback){
+        var location = util.get_obj(options.location_cookie);
+        if (!location || location.source !== 'google'){
+          win.gloaderReady = function() {
+            if ("google" in win){
+              if (win.google.loader.ClientLocation){
+                win.google.loader.ClientLocation.source = "google";
+                callback(win.google.loader.ClientLocation);
+              } else {
+                callback({error: true, source: "google"});
               }
               util.set_cookie(
                 options.location_cookie,
-                json.stringify( window.google.loader.ClientLocation ),
-                options.location_cookie_timeout * 60 * 60 * 1000
-              );
-            }
-          };
-          util.embed_script( "https://www.google.com/jsapi?callback=gloaderReady" );
-        }
-        else {
-          callback( json.parse( util.get_cookie( options.location_cookie ) ) );
-        }
-      };
+                util.package_obj(win.google.loader.ClientLocation),
+                options.location_cookie_timeout * 60 * 60 * 1000);
+            }}
+          util.embed_script("https://www.google.com/jsapi?callback=gloaderReady");
+        } else {
+          callback(location);
+        }}
     },
-    
-    ipinfodb_location: function( apiKey ) {
-      return function( callback ) {
-        var location_cookie = util.get_cookie( options.location_cookie );
-        if( location_cookie )
-          return json.parse( location_cookie );
-        window.IPInfoReady = function( data ) {
-          if( data.statusCode === "OK" ) {
-            data.source = "IPInfoDB";
+    ipinfodb_location: function(apiKey){
+      return function (callback){
+        var location_cookie = util.get_obj(options.location_cookie);
+        if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
+        win.ipinfocb = function(data){
+          if (data.statusCode === "OK"){
+            data.source = "ipinfodb";
             util.set_cookie(
               options.location_cookie,
-              json.stringify( data ),
-              options.location_cookie * 60 * 60 * 1000
-            );
-            callback( data );
-          }
-          else {
-            if( options.gapi_location ) return modules.gapi_location()(callback);
-            else callback({ error: true, source: "IPInfoDB", message: data.statusMessage });
-          }
-        };
-        util.embed_script(
-          "http://api.ipinfodb.com/v3/ip-city/?key=" + apiKey + "&format=json&callback=ipinfocb"
-        );
-      };
-    }
-    
+              util.package_obj(data),
+              options.location_cookie * 60 * 60 * 1000);
+            callback(data);
+          } else {
+            if (options.gapi_location){ return modules.gapi_location()(callback); }
+            else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
+          }}
+        util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + apiKey + "&format=json&callback=ipinfocb");
+      }}
   };
   
-  
   // Utilities
-  var util = {
-    
-    trim: function( string ) {
-      return string.replace( /^\s+|\s+$/g, "" );
-    },
-    
-    parse_url: function( string ) {
-      
-      var query, a = document.createElement( "a" );
-          a.href = string;
-      // Strip the '?'
-      var query = a.search.substr(1);
+  var util = win.util = {
+    parse_url: function(url_str){
+      var a = doc.createElement("a"), query = {};
+      a.href = url_str; query_str = a.search.substr(1);
       // Disassemble query string
-      if( query !== "" ) {
-        var pairs = query.split( "&" ),
-            length = split.length, parts, i = 0;
-            query = {};
-        for( ; i < length; i++ ) {
-          parts = pairs[i].split( "=" );
-          if( parts.length === 2 )
-            query[parts[0]] = decodeURI( parts[1] );
+      if (query_str != ''){
+        var pairs = query_str.split("&"), i = 0,
+            length = pairs.length, parts;
+        for (; i < length; i++){
+          parts = pairs[i].split("=");
+          if (parts.length === 2){
+            query[parts[0]] = decodeURI(parts[1]); }
         }
       }
       return {
         host:     a.host,
         path:     a.pathname,
         protocol: a.protocol,
-        port:     a.port === "" ? 80 : +a.port,
+        port:     a.port === '' ? 80 : a.port,
         search:   a.search,
-        query:    query
-      }
+        query:    query }
     },
-    
-    set_cookie: function( name, value, expires, path ) {
+    set_cookie: function(name, value, expires, path){
+      if (!doc.cookie || !name || !value){ return null; }
       // set path
       path = path ? "; path=" + path : "; path=/";
       // calculate expiration date
-      if( expires ) {
+      if (expires) {
         var date = new Date();
-        date.setTime( date.getTime() + expires );
+        date.setTime(date.getTime() + expires);
         expires = "; expires=" + date.toGMTString();
-      }
-      else expires = "";
+      } else { expires = ""; }
       // set cookie
-      return document.cookie = name + "=" + value + expires + path;
+      return (doc.cookie = (name + "=" + value + expires + path));
     },
-    
-    get_cookie: function( name ) {
-      var cookies = document.cookie.split( ';' ),
-          cookie, i = 0, length = cookies.length;
-      for( ; i < length; i++ ) {
-        cookie = util.trim( cookies[i] );
-        if( cookie.indexOf( name ) === 0 )
-          return cookie.substr( name.length + 1, cookie.length );
-      }
-      return null;
+    get_cookie: function(cookie_name){ // from quirksmode.org
+      var nameEQ = cookie_name + "=";
+    	var ca = doc.cookie.split(';');
+    	for (var i = 0; i < ca.length; i++){
+    		var c = ca[i];
+    		while (c.charAt(0)==' '){ c = c.substring(1, c.length); }
+    		if (c.indexOf(nameEQ) == 0){ return c.substring(nameEQ.length, c.length); }
+    	} return null;
     },
-    
-    embed_script: function( url ) {
-      var element  = document.createElement( "script" );
+    embed_script: function(url){
+      var element  = doc.createElement("script");
       element.type = "text/javascript";
       element.src  = url;
-      document.getElementsByTagName( "body" )[0].appendChild( element );
+      doc.getElementsByTagName("body")[0].appendChild(element);
+    },
+    package_obj: function (obj){
+      obj.version = API_VERSION;
+      var ret = JSON.stringify(obj);
+      delete obj.version; return ret;
+    },
+    get_obj: function(cookie_name){
+      var obj = JSON.parse(util.get_cookie(cookie_name));
+      if (obj && obj.version == API_VERSION){
+        delete obj.version; return obj;
+      }
     }
-    
   };
-  
   
   // JSON
-  var json = {
-    
-    parse: JSON.parse || function( data ) {
-      if( typeof data !== "string" || !data )
-        return null;
-      return ( new Function( "return " + data ) )();
+  var JSON = {
+    parse: (win.JSON && win.JSON.parse) || function(data) {
+      try {
+        if (typeof data !== "string" || !data){ return null; }
+        return (new Function("return " + data))();
+      } catch (e){ return null; }
     },
-    
-    stringify: JSON.stringify || function( object ) {
+    stringify: (win.JSON && win.JSON.stringify) || function(object) {
       var type = typeof object;
-      if( type !== "object" || object === null ) {
-        if( type === "string" )
-          return '"' + object + '"';
-      }
-      else {
+      if (type !== "object" || object === null) {
+        if (type === "string"){ return '"' + object + '"'; }
+      } else {
         var k, v, json = [],
-            isArray = ( object && object.constructor === Array );
-        for( k in object ) {
+            isArray = (object && object.constructor === Array);
+        for (k in object ) {
           v = object[k]; type = typeof v;
-          if( type === "string" )
+          if (type === "string")
             v = '"' + v + '"';
-          else if( type === "object" && v !== null )
-            v = this.stringify( v );
-          json.push( ( isArray ? "" : '"' + k + '":' ) + v );
+          else if (type === "object" && v !== null)
+            v = this.stringify(v);
+          json.push((isArray ? "" : '"' + k + '":') + v);
         }
-        return ( isArray ? "[" : "{" ) + json.join(",") + ( isArray ? "]" : "}" );
-      }
-    }
-    
-  };
-  
-  
-  // Initialize
-  new session();
-  
-  
-})( window, document );
+        return (isArray ? "[" : "{") + json.join(",") + (isArray ? "]" : "}");
+      } } };
+
+  // Initialize SessionRunner
+  SessionRunner();
+
+})(window, document);
