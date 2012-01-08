@@ -307,7 +307,7 @@
   };
   
   // Utilities
-  var util = win.util = {
+  var util = {
     parse_url: function(url_str){
       var a = doc.createElement("a"), query = {};
       a.href = url_str; query_str = a.search.substr(1);
