@@ -19,7 +19,7 @@ Include `session.js` in the head or footer.
 Edge:
 [uncompressed](https://raw.github.com/codejoust/session.js/master/session.js),
 [compressed](https://raw.github.com/codejoust/session.js/master/session.min.js)
-Lock version to v0.4 (last stable version):
+Lock version to v0.4:
 [uncompressed](https://raw.github.com/codejoust/session.js/v0.4/session.js), [compressed](https://raw.github.com/codejoust/session.js/v0.4/session.min.js).
 
 If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
