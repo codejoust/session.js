@@ -41,6 +41,8 @@
         options[option] = win.session.options[option]; }
     }
     // Modules to run
+    // If the module has arguments,
+    //   it _needs_ to return a callback function.
     this.modules = {
       api_version: API_VERSION,
       locale: modules.locale(),
@@ -163,10 +165,11 @@
         navigator.systemLanguage  ||
         navigator.userLanguage
       ).split("-");
-      return {
-        country: lang[1].toLowerCase(),
-        lang: lang[0].toLowerCase()
-      };
+      if (lang.length == 2){
+        return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
+      } else if (lang) {
+        return {lang: lang[0].toLowerCase(), country: null };
+      } else { return{lang: null, country: null }; }
     },
     device: function() {
       var device = {
@@ -307,7 +310,7 @@
   };
   
   // Utilities
-  var util = win.util = {
+  var util = {
     parse_url: function(url_str){
       var a = doc.createElement("a"), query = {};
       a.href = url_str; query_str = a.search.substr(1);
