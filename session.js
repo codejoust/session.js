@@ -78,17 +78,17 @@
     for (var name in this.modules){
       module = self.modules[name];
       if(typeof module === "function"){
-        //try {
+        try {
           asynchs++;
           module(function(data){
             self.modules[name] = data;
             asynchs--;
             check_asynch();
           });
-        /*} catch(err){
+        } catch(err){
           if (win.console && typeof(console.log) === "function"){
             console.log(err); }
-        }*/
+        }
       } else {
         self.modules[name] = module;
       }
@@ -340,7 +340,7 @@
         expires = "; expires=" + date.toGMTString();
       } else { expires = ""; }
       // set cookie
-      return (doc.cookie = (name + "=" + value + expires + path));
+      return (doc.cookie = (name + "=" + encodeURIComponent(value) + expires + path));
     },
     get_cookie: function(cookie_name){ // from quirksmode.org
       var nameEQ = cookie_name + "=";
@@ -348,7 +348,7 @@
     	for (var i = 0; i < ca.length; i++){
     		var c = ca[i];
     		while (c.charAt(0)==' '){ c = c.substring(1, c.length); }
-    		if (c.indexOf(nameEQ) == 0){ return c.substring(nameEQ.length, c.length); }
+    		if (c.indexOf(nameEQ) == 0){ return decodeURIComponent(c.substring(nameEQ.length, c.length)); }
     	} return null;
     },
     embed_script: function(url){
