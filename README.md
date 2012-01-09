@@ -36,16 +36,16 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
   },
   "current_session": {
     "visits": 1,
-    "start": 1326044899285,
-    "last_visit": 1326044899285,
-    "url": "http://localhost:8000/demo.html",
-    "path": "/demo.html",
+    "start": 1326068806791,
+    "last_visit": 1326068806791,
+    "url": "http://codejoust.github.com/session.js/",
+    "path": "/session.js/",
     "referrer": "",
     "referrer_info": {
-      "host": "localhost:8000",
-      "path": "/demo.html",
+      "host": "codejoust.github.com",
+      "path": "/session.js/",
       "protocol": "http:",
-      "port": "8000",
+      "port": 80,
       "search": "",
       "query": {}
     },
@@ -55,17 +55,17 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     }
   },
   "original_session": {
-    "visits": 20,
-    "start": 1326031569673,
-    "last_visit": 1326044899289,
-    "url": "http://localhost:8000/demo.html",
-    "path": "/demo.html",
+    "visits": 14,
+    "start": 1326032481755,
+    "last_visit": 1326068806793,
+    "url": "http://codejoust.github.com/session.js/",
+    "path": "/session.js/",
     "referrer": "",
     "referrer_info": {
-      "host": "localhost:8000",
-      "path": "/demo.html",
+      "host": "codejoust.github.com",
+      "path": "/session.js/",
       "protocol": "http:",
-      "port": "8000",
+      "port": 80,
       "search": "",
       "query": {}
     },
@@ -84,6 +84,11 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     "silverlight": true,
     "java": true,
     "quicktime": true
+  },
+  "time": {
+    "timezone": "EST",
+    "tz_offset": -5,
+    "observes_dst": true
   },
   "device": {
     "screen": {
