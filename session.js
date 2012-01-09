@@ -52,7 +52,7 @@
         options.session_timeout * 24 * 60 * 60 * 1000),
       browser: modules.browser(),
       plugins: modules.plugins(),
-      time: modules.time(), // uses callback
+      time: modules.time(),
       device: modules.device()
     };
     // Location switch
@@ -160,18 +160,12 @@
       return browser.detect();
     },
     time: function(){
-      // wrapping in a callback to catch failures...
-      try {
-        var d = new Date('Sat, 07 Jan 2012 04:10:00 +0000');
-        d = d.toString();
-        d = d.match(/\(([^]+)\)/)[1];
-        // split date and grab timezone estimation.
-        // timezone estimation: http://www.onlineaspect.com/2007/06/08/auto-detect-a-time-zone-with-javascript/
-          var d1 = new Date(), d2 = new Date();
-          d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
-        return({timezone: d, tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
-        // Gives a browser estimation, not guaranteed to be correct.
-      } catch (e){ return {err: true, msg: e}; }
+      // split date and grab timezone estimation.
+      // timezone estimation: http://www.onlineaspect.com/2007/06/08/auto-detect-a-time-zone-with-javascript/
+      var d1 = new Date(), d2 = new Date();
+      d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
+      return({tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
+      // Gives a browser estimation, not guaranteed to be correct.
     },
     locale: function() {
       var lang = (
