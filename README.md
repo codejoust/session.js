@@ -19,8 +19,9 @@ Include `session.js` in the head or footer.
 Edge:
 [uncompressed](https://raw.github.com/codejoust/session.js/master/session.js),
 [compressed](https://raw.github.com/codejoust/session.js/master/session.min.js)
-Lock version to v0.3:
-[uncompressed](https://raw.github.com/codejoust/session.js/v0.3/session.js) [compressed](https://raw.github.com/codejoust/session.js/v0.3/session.min.js)
+
+Lock version to v0.4:
+[uncompressed](https://raw.github.com/codejoust/session.js/v0.4/session.js), [compressed](https://raw.github.com/codejoust/session.js/v0.4/session.min.js).
 
 If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
 
@@ -28,47 +29,55 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
 
 ```js
 {
-  "api_version": 0.3,
+  "api_version": 0.4,
   "locale": {
     "country": "us",
     "lang": "en"
   },
-  "cur_session": {
+  "current_session": {
     "visits": 1,
+    "start": 1326068806791,
+    "last_visit": 1326068806791,
+    "url": "http://codejoust.github.com/session.js/",
+    "path": "/session.js/",
     "referrer": "",
     "referrer_info": {
-      "host": "localhost:8000",
-      "path": "/demo.html",
+      "host": "codejoust.github.com",
+      "path": "/session.js/",
       "protocol": "http:",
-      "port": "8000",
+      "port": 80,
       "search": "",
-      "qs": {}
+      "query": {}
     },
-    "url": "http://localhost:8000/demo.html",
-    "path": "/demo.html",
-    "start": 1325953820732,
-    "last_visit": 1325953820732,
     "search": {
       "engine": null,
       "query": null
     }
   },
-  "orig_session": {
-    "visits": 34,
+  "original_session": {
+    "visits": 14,
+    "start": 1326032481755,
+    "last_visit": 1326068806793,
+    "url": "http://codejoust.github.com/session.js/",
+    "path": "/session.js/",
+    "referrer": "",
+    "referrer_info": {
+      "host": "codejoust.github.com",
+      "path": "/session.js/",
+      "protocol": "http:",
+      "port": 80,
+      "search": "",
+      "query": {}
+    },
     "search": {
       "engine": null,
       "query": null
-    },
-    "referrer": "http://localhost:8000/",
-    "url": "http://localhost:8000/demo.html",
-    "path": "/demo.html",
-    "start": 1325944690598,
-    "last_visit": 1325953820744
+    }
   },
   "browser": {
     "browser": "Chrome",
     "version": 16,
-    "OS": "Mac"
+    "os": "Mac"
   },
   "plugins": {
     "flash": true,
@@ -76,14 +85,19 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     "java": true,
     "quicktime": true
   },
+  "time": {
+    "timezone": "EST",
+    "tz_offset": -5,
+    "observes_dst": true
+  },
   "device": {
     "screen": {
       "width": 1280,
       "height": 1024
     },
     "viewport": {
-      "width": 1206,
-      "height": 816
+      "width": 1063,
+      "height": 860
     },
     "is_tablet": false,
     "is_phone": false,
@@ -104,28 +118,43 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
 ```
 <a name="options" />
 ### Options:
-Set `window.session_opts` before including `session.js` to change options.
+Set `window.session` before including `session.js` to change options and define a location callback.
 Default options are shown below.
 
 ipinfodb.com location [demo](http://codejoust.github.com/session.js/ipinfodb_demo.html).
 
+Synchronous information (everything but location not cached in a cookie),
+is available immediately after including session.js.
+
 ```js
-window.session_opts = {
-  use_html5_location: false,
-  // use html5 location -- this _ONLY_ return lat/long, not an city/address
-  ipinfodb_key: null,
-  // attempts to use ipinfodb if provided a valid key -- get a key at http://ipinfodb.com/register.php
-  gapi_location: true,
-  // leaving true allows for fallback for both the html5 location and the ipinfodb
-  session_days: 32,
-  // how many days session information is kept in a cookie
-  location_cookie_name: 'location',
-  // the name of the location cookie
-  //   -- warning: different providers use the same cookie
-  //   -- if switching providers, remember to use another cookie or provide checks for old cookies
-  session_cookie_name: 'first_session',
-  // session cookie name
-  location_cookie_hours: 2
-  // lifetime of the location cookie
-};
+window.session = {
+  options: {
+  // Default Settings Example
+    // Use the HTML5 Geolocation API
+    // this ONLY returns lat & long, no city/address
+    use_html5_location: false,
+    // Attempts to use IPInfoDB if provided a valid key
+    // Get a key at http://ipinfodb.com/register.php
+    ipinfodb_key: false,
+    // Leaving true allows for fallback for both
+    // the HTML5 location and the IPInfoDB
+    gapi_location: true,
+    // Name of the location cookie (set blank to disable cookie)
+    //   - WARNING: different providers use the same cookie
+    //   - if switching providers, remember to use another cookie or provide checks for old cookies
+    location_cookie: "location",
+    // Location cookie expiration in hours
+    location_cookie_timeout: 5,
+    // Session expiration in days
+    session_timeout: 32,
+    // Session cookie name (set blank to disable cookie)
+    session_cookie: "first_session"
+    };
+  },
+  start: {
+    // Session location loaded.
+  }
+}
 ```
+
+<img src="https://secure.codejoust.com/pix" />
