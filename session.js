@@ -161,21 +161,17 @@
     },
     time: function(){
       // wrapping in a callback to catch failures...
-      return function(cb){
+      //return function(cb){
         var d = new Date('Sat, 07 Jan 2012 04:10:00 +0000');
         d = d.toString();
         d = d.match(/\(([^]+)\)/)[1];
         // split date and grab timezone estimation.
         // timezone estimation: http://www.onlineaspect.com/2007/06/08/auto-detect-a-time-zone-with-javascript/
-        var now = new Date(), jan1 = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0), jan1_str = jan1.toGMTString()
-          , jan2 = new Date(jan1_str.substring(0, jan1_str.lastIndexOf(" ")-1))
-          , std_time_offset = (jan1 - jan2) / (1000 * 60 * 60)
-          , june1 = new Date(rightNow.getFullYear(), 6, 1, 0, 0, 0, 0), june1_str = june1.toGMTString()
-          , june2 = new Date(temp.substring(0, temp.lastIndexOf(" ")-1))
-          , daylight_time_offset = (june1 - june2) / (1000 * 60 * 60);
-        cb({timezone: d, tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (std_time_offset === daylight_time_offset) });
+          var d1 = new Date(), d2 = new Date();
+          d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
+        return({timezone: d, tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
         // Gives a browser estimation, not guaranteed to be correct.
-      };
+      //};
     },
     locale: function() {
       var lang = (
