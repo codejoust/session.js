@@ -17,11 +17,11 @@ Include `session.js` in the head or footer.
 
 #### Download/Linking:
 Edge:
-[uncompressed](https://raw.github.com/codejoust/session.js/master/session.js),
-[compressed](https://raw.github.com/codejoust/session.js/master/session.min.js)
+[uncompressed](http://codejoust.github.com/session.js/session.js),
+[compressed](http://codejoust.github.com/session.js/session.min.js)
 
 Lock version to v0.4:
-[uncompressed](https://raw.github.com/codejoust/session.js/v0.4/session.js), [compressed](https://raw.github.com/codejoust/session.js/v0.4/session.min.js).
+[uncompressed](http://codejoust.github.com/session.js/session-0.4.js), [compressed](http://codejoust.github.com/session.js/session-0.4.min.js).
 
 If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
 
