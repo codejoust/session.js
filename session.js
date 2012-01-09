@@ -6,7 +6,7 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc){
+(function(win, doc, nav){
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
   
@@ -105,7 +105,7 @@
     detect: function(){
       return {
         browser: this.search(this.data.browser),
-        version: this.search(navigator.userAgent) || this.search(navigator.appVersion),
+        version: this.search(nav.userAgent) || this.search(nav.appVersion),
         os: this.search(this.data.os)
     } },
     search: function(data) {
@@ -132,26 +132,26 @@
     },
     data: {
       browser: [
-        { string: navigator.userAgent, subString: "Chrome", identity: "Chrome" },
-        { string: navigator.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
-        { string: navigator.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
+        { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
+        { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+        { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
         { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
-        { string: navigator.vendor, subString: "iCab",identity: "iCab" },
-        { string: navigator.vendor, subString: "KDE", identity: "Konqueror" },
-        { string: navigator.userAgent, subString: "Firefox", identity: "Firefox" },
-        { string: navigator.vendor, subString: "Camino", identity: "Camino" },
-        { string: navigator.userAgent, subString: "Netscape", identity: "Netscape" },
-        { string: navigator.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
-        { string: navigator.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
-        { string: navigator.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
+        { string: nav.vendor, subString: "iCab",identity: "iCab" },
+        { string: nav.vendor, subString: "KDE", identity: "Konqueror" },
+        { string: nav.userAgent, subString: "Firefox", identity: "Firefox" },
+        { string: nav.vendor, subString: "Camino", identity: "Camino" },
+        { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
+        { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
+        { string: nav.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
+        { string: nav.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
       ],
       os: [
-        { string: navigator.platform, subString: "Win", identity: "Windows" },
-        { string: navigator.platform, subString: "Mac", identity: "Mac" },
-        { string: navigator.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-        { string: navigator.userAgent, subString: "iPad", identitiy: "iPad" },
-        { string: navigator.platform, subString: "Linux", identity: "Linux" },
-        { string: navigator.userAgent, subString: "Android", identity: "Android" }
+        { string: nav.platform, subString: "Win", identity: "Windows" },
+        { string: nav.platform, subString: "Mac", identity: "Mac" },
+        { string: nav.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
+        { string: nav.userAgent, subString: "iPad", identitiy: "iPad" },
+        { string: nav.platform, subString: "Linux", identity: "Linux" },
+        { string: nav.userAgent, subString: "Android", identity: "Android" }
       ]}
   };
   
@@ -161,7 +161,7 @@
     },
     time: function(){
       // wrapping in a callback to catch failures...
-      //return function(cb){
+      try {
         var d = new Date('Sat, 07 Jan 2012 04:10:00 +0000');
         d = d.toString();
         d = d.match(/\(([^]+)\)/)[1];
@@ -171,14 +171,14 @@
           d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
         return({timezone: d, tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
         // Gives a browser estimation, not guaranteed to be correct.
-      //};
+      } catch (e){ return {err: true, msg: e}; }
     },
     locale: function() {
       var lang = (
-        navigator.language        ||
-        navigator.browserLanguage ||
-        navigator.systemLanguage  ||
-        navigator.userLanguage
+        nav.language        ||
+        nav.browserLanguage ||
+        nav.systemLanguage  ||
+        nav.userLanguage
       ).split("-");
       if (lang.length == 2){
         return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
@@ -199,17 +199,17 @@
         width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
         height: win.innerHeight || html.clientHeight || body.clientHeight
       };
-      device.is_tablet = !!navigator.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
-      device.is_phone = !device.isTablet && !!navigator.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
+      device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
+      device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
       device.is_mobile = (device.is_tablet || device.is_phone);
       return device;
     },
     plugins: function(){
       var check_plugin = function(name){
-        if (navigator.plugins){
-          var plugin, i = 0, length = navigator.plugins.length;
+        if (nav.plugins){
+          var plugin, i = 0, length = nav.plugins.length;
           for (; i < length; i++ ){
-            plugin = navigator.plugins[i];
+            plugin = nav.plugins[i];
             if (plugin && plugin.name && plugin.name.toLowerCase().indexOf(name) !== -1){
               return true;
             } }
@@ -271,7 +271,7 @@
     },
     html5_location: function(){
       return function(callback){
-        navigator.geolocation.getCurrentPosition(function(pos){
+        nav.geolocation.getCurrentPosition(function(pos){
           pos.source = 'html5';
           callback(pos);
         }, function(err) {
@@ -411,4 +411,4 @@
   // Initialize SessionRunner
   SessionRunner();
 
-})(window, document);
+})(window, document, navigator);
