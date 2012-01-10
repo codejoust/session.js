@@ -18,9 +18,11 @@
   
   // Settings: defaults
   var options = {
+    // Use location tracking at all
+    track_location: true,
     // Use the HTML5 Geolocation API
     // this ONLY returns lat & long, no city/address
-    use_html5_location: false,
+    html5_location: false,
     // Attempts to use IPInfoDB if provided a valid key
     // Get a key at http://ipinfodb.com/register.php
     ipinfodb_key: false,
@@ -337,68 +339,89 @@
         options.session_timeout * 24 * 60 * 60 * 1000
       );
     },
-    html5_location: function(){
-      if( options.use_html5_location ) {
-        return function(callback){
-          nav.geolocation.getCurrentPosition(function(pos){
-            pos.source = 'html5';
-            callback(pos);
-          }, function(err) {
-            if (options.gapi_location){
-              modules.gapi_location()(callback);
-            } else {
-              callback({error: true, source: 'html5'}); }
-          });
-        };
-      }
-    },
-    gapi_location: function(){
-      if( options.gapi_location ) {
-        return function(callback){
+    location: function() {
+      if( options.track_location ) {
+        
+        var html5_location = function( callback ) {
+          if( nav.geolocation ) {
+            nav.geolocation.getCurrentPosition( function( pos ) {
+              callback({
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracy: pos.coords.accuracy,
+                address: null,
+                source: 'client'
+              });
+            }, function( error ) {
+              if( options.gapi_location ) gapi_location( callback );
+              else callback( null );
+            });
+          }
+          else if( options.gapi_location )
+            gapi_location( callback );
+        }
+        
+        var gapi_location = function( callback ) {
           var location = util.get_obj(options.location_cookie);
-          if (!location || location.source !== 'google'){
+          if (!location || location.source !== 'google') {
             win.gloader_ready = function() {
-              if ("google" in win){
-                if (win.google.loader.ClientLocation){
-                  win.google.loader.ClientLocation.source = "google";
-                  callback(win.google.loader.ClientLocation);
+              if( 'google' in win ) {
+                var pos = win.google.loader.ClientLocation;
+                if( pos ) {
+                  callback({
+                    latitude: pos.latitude,
+                    longitude: pos.longitude,
+                    accuracy: null,
+                    address: pos.address,
+                    source: 'google'
+                  });
                 } else {
-                  callback({error: true, source: "google"});
+                  callback( null );
                 }
                 util.set_cookie(
                   options.location_cookie,
-                  util.package_obj(win.google.loader.ClientLocation),
-                  options.location_cookie_timeout * 60 * 60 * 1000);
-              }}
+                  util.package_obj( win.google.loader.ClientLocation ),
+                  options.location_cookie_timeout * 60 * 60 * 1000
+                );
+              }
+            };
             util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
           } else {
-            callback(location);
+            callback( location );
           }
         }
-      }
-    },
-    ipinfodb_location: function(api_key){
-      if( options.ipinfodb_key ) {
-        api_key = api_key || options.ipinfodb_key;
-        return function (callback){
-          var location_cookie = util.get_obj(options.location_cookie);
-          if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
-          win.ipinfocb = function(data){
-            if (data.statusCode === "OK"){
-              data.source = "ipinfodb";
-              util.set_cookie(
-                options.location_cookie,
-                util.package_obj(data),
-                options.location_cookie * 60 * 60 * 1000);
-              callback(data);
-            } else {
-              if (options.gapi_location){ return modules.gapi_location()(callback); }
-              else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
-            }}
-          util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
+        
+        var ipinfodb_location = function( callback ) {
+          api_key = options.ipinfodb_key;
+          var location = util.get_obj( options.location_cookie );
+          if( !location || location.source !== 'ipinfodb' ) {
+            win.ipinfocb = function( data ) {
+              if( data.statusCode === "OK" ) {
+                data.source = "ipinfodb";
+                util.set_cookie(
+                  options.location_cookie,
+                  util.package_obj( data ),
+                  options.location_cookie * 60 * 60 * 1000
+                );
+                callback( data );
+              } else {
+                if( options.gapi_location ) gapi_location( callback );
+                else callback( null );
+              }
+            };
+            util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
+          } else {
+            callback( location );
+          }
         }
-      }
+        
+        if( options.html5_location ) return html5_location;
+        else if( options.ipinfodb_key ) return ipinfodb_location;
+        else if( options.gapi_location ) return gapi_location;
+        
+      } else return null;
     }
+    
   };
   
   // Utilities
