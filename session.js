@@ -69,7 +69,7 @@
           }
         }
     // clear
-    win.session = {};
+    win.session = { api_version: API_VERSION };
     // run modules
     for( var name in modules ) {
       module = modules[name]();
