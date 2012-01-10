@@ -6,15 +6,23 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc, nav){
+(function(win){
+  
+  // References for better js compression
+  var doc = win.document,
+      nav = win.navigator,
+      scr = win.screen;
+  
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
   
   // Settings: defaults
   var options = {
+    // Use location tracking at all
+    track_location: true,
     // Use the HTML5 Geolocation API
     // this ONLY returns lat & long, no city/address
-    use_html5_location: false,
+    html5_location: false,
     // Attempts to use IPInfoDB if provided a valid key
     // Get a key at http://ipinfodb.com/register.php
     ipinfodb_key: false,
@@ -48,182 +56,61 @@
       for (option in win.session.options){
         options[option] = win.session.options[option]; }
     }
-    // Modules to run
-    // If the module has arguments,
-    //   it _needs_ to return a callback function.
-    var unloaded_modules = {
-      api_version: API_VERSION,
-      locale: modules.locale(),
-      current_session: modules.session(),
-      original_session: modules.session(
-        options.session_cookie,
-        options.session_timeout * 24 * 60 * 60 * 1000),
-      browser: modules.browser(),
-      plugins: modules.plugins(),
-      time: modules.time(),
-      device: modules.device()
-    };
-    // Location switch
-    if (options.use_html5_location){
-      unloaded_modules.location = modules.html5_location();
-    } else if (options.ipinfodb_key){
-      unloaded_modules.location = modules.ipinfodb_location(options.ipinfodb_key);
-    } else if (options.gapi_location){
-      unloaded_modules.location = modules.gapi_location();
-    }
     // Cache win.session.start
     if (win.session && win.session.start){
       var start = win.session.start;
     }
     // Set up checking, if all modules are ready
-    var asynchs = 0, module, result,
-    check_asynch = function(deinc){
-      if (deinc){ asynchs--; }
-      if (asynchs === 0){
-        // Run start calback
-        if (start){ start(win.session); }
-      }
-    };
-    win.session = {};
-    // Run asynchronous methods
-    for (var name in unloaded_modules){
-      module = unloaded_modules[name];
-      if (typeof module === "function"){
+    var name, module, asynchs = 0, self = this,
+        check_asynch = function( deinc ) {
+          if( deinc ) asynchs--;
+          if( asynchs === 0 ) {
+            if( start ) start( win.session );
+          }
+        }
+    // clear
+    win.session = { api_version: API_VERSION };
+    // run modules
+    for( var name in modules ) {
+      module = modules[name]();
+      if( typeof module === 'function' ) {
         try {
-          module(function(data){
+          module( function( data ) {
             win.session[name] = data;
-            check_asynch(true);
+            check_asynch( true );
           });
           asynchs++;
-        } catch(err){
-          if (win.console && typeof(console.log) === "function"){
-            console.log(err); check_asynch(true); }
         }
-      } else {
-        win.session[name] = module;
-      } }
-    check_asynch();
-  };
-  
-  
-  // Browser (and OS) detection
-  var browser = {
-    detect: function(){
-      return {
-        browser: this.search(this.data.browser),
-        version: this.search(nav.userAgent) || this.search(nav.appVersion),
-        os: this.search(this.data.os)
-    } },
-    search: function(data) {
-      if (typeof data === "object"){
-        // search for string match
-        for(var i = 0; i < data.length; i++) {
-          var dataString = data[i].string,
-              dataProp   = data[i].prop;
-          this.version_string = data[i].versionSearch || data[i].identity;
-          if (dataString){
-            if (dataString.indexOf(data[i].subString) != -1){
-              return data[i].identity;
-            }
-          } else if (dataProp){
-            return data[i].identity;
+        catch( error ) {
+          if( win.console && typeof console.log === 'function' ) {
+            console.log( error );
+            check_asynch( true );
           }
         }
       } else {
-        // search for version number
-        var index = data.indexOf(this.version_string);
-        if (index == -1) return;
-        return parseFloat(data.substr(index + this.version_string.length + 1));
+        win.session[name] = module;
       }
-    },
-    data: {
-      browser: [
-        { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
-        { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
-        { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
-        { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
-        { string: nav.vendor, subString: "iCab",identity: "iCab" },
-        { string: nav.vendor, subString: "KDE", identity: "Konqueror" },
-        { string: nav.userAgent, subString: "Firefox", identity: "Firefox" },
-        { string: nav.vendor, subString: "Camino", identity: "Camino" },
-        { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
-        { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
-        { string: nav.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
-        { string: nav.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
-      ],
-      os: [
-        { string: nav.platform, subString: "Win", identity: "Windows" },
-        { string: nav.platform, subString: "Mac", identity: "Mac" },
-        { string: nav.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-        { string: nav.userAgent, subString: "iPad", identitiy: "iPad" },
-        { string: nav.platform, subString: "Linux", identity: "Linux" },
-        { string: nav.userAgent, subString: "Android", identity: "Android" }
-      ]}
+    }
+    // initial check
+    check_asynch();
   };
   
   var modules = {
-    browser: function(){
-      return browser.detect();
-    },
-    time: function(){
-      // split date and grab timezone estimation.
-      // timezone estimation: http://www.onlineaspect.com/2007/06/08/auto-detect-a-time-zone-with-javascript/
-      var d1 = new Date(), d2 = new Date();
-      d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
-      return({tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
-      // Gives a browser estimation, not guaranteed to be correct.
-    },
+    
     locale: function() {
       var lang = (
         nav.language        ||
         nav.browserLanguage ||
         nav.systemLanguage  ||
         nav.userLanguage
-      ).split("-");
-      if (lang.length == 2){
-        return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
-      } else if (lang) {
-        return {lang: lang[0].toLowerCase(), country: null };
-      } else { return{lang: null, country: null }; }
-    },
-    device: function() {
-      var device = {
-        screen: {
-          width: screen.width,
-          height: screen.height
-        }
-      };
-      var html = doc.documentElement,
-          body = doc.getElementsByTagName("body")[0];
-      device.viewport = {
-        width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
-        height: win.innerHeight || html.clientHeight || body.clientHeight
-      };
-      device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
-      device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
-      device.is_mobile = (device.is_tablet || device.is_phone);
-      return device;
-    },
-    plugins: function(){
-      var check_plugin = function(name){
-        if (nav.plugins){
-          var plugin, i = 0, length = nav.plugins.length;
-          for (; i < length; i++ ){
-            plugin = nav.plugins[i];
-            if (plugin && plugin.name && plugin.name.toLowerCase().indexOf(name) !== -1){
-              return true;
-            } }
-          return false;
-        } return false;
-      }
+      ).toLowerCase().split( '-' );
       return {
-        flash:       check_plugin("flash"),
-        silverlight: check_plugin("silverlight"),
-        java:        check_plugin("java"),
-        quicktime:   check_plugin("quicktime")
-      }; 
+        country: ( lang[1] || lang[0] ) || null,
+        language: lang[0] || null
+      };
     },
-    session: function (cookie, expires){
+    
+    current_session: function (cookie, expires){
       var session = util.get_obj(cookie);
       if (session == null){
         session = {
@@ -269,59 +156,279 @@
       util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
     },
-    html5_location: function(){
-      return function(callback){
-        nav.geolocation.getCurrentPosition(function(pos){
-          pos.source = 'html5';
-          callback(pos);
-        }, function(err) {
-          if (options.gapi_location){
-            modules.gapi_location()(callback);
-          } else {
-            callback({error: true, source: 'html5'}); }
-        });
+    
+    original_session: function() {
+      return this.current_session(
+        options.session_cookie,
+        options.session_timeout * 24 * 60 * 60 * 1000
+      );
+    },
+    
+    browser: function(){
+      
+      var identity = null, match, version;
+      
+      var data = {
+        'Chrome':             'Chrome',
+        'OmniWeb':            'OmniWeb',
+        'Safari':             'Apple',
+        'iCab':               'iCab',
+        'Konqueror':          'KDE',
+        'Firefox':            'Firefox',
+        'Camino':             'Camino',
+        'Internet Explorer':  'MSIE',
+        'Mozilla':            'Gecko',
+        'Opera':              'Opera'
+      };
+      
+      for( identity in data ) {
+        // match identity & version
+        match = nav.userAgent.match( new RegExp(
+          '(' + data[identity] + ')(?:(?:/| )([0-9._]*))?'
+        ));
+        // retrieve versions for opera, safari, ...
+        version = nav.userAgent.match(
+          /Version(?:\/| )([0-9._]*)/
+        );
+        // get out of the loop
+        if( match ) break;
+      }
+      
+      function plugins() {
+        if( !nav.plugins ) return null;
+        var checks = [ 'flash', 'silverlight', 'java', 'quicktime' ],
+            result = {}, plugin, name;
+        for( var i in checks ) {
+          name = checks[i]; result[name] = false;
+          for( var j in nav.plugins ) {
+            plugin = nav.plugins[j];
+            if( plugin.name && plugin.name.toLowerCase().indexOf( name ) !== -1 ) {
+              result[name] = true; break;
+            }
+          }
+        }
+        return result;
+      }
+      
+      return {
+        // vendor: nav.vendor || null,
+        name: identity,
+        version: version && version[1] || match && match[2] || null,
+        plugins: plugins()
+      };
+      
+    },
+    
+    timezone: function(){
+      var A = new Date(); A.setMonth( 0 ); A.setDate( 1 );
+      var B = new Date(); B.setMonth( 6 ); B.setDate( 1 );
+      return {
+        offset: new Date().getTimezoneOffset() / -60,
+        dst: A.getTimezoneOffset() !== B.getTimezoneOffset()
       };
     },
-    gapi_location: function(){
-      return function(callback){
-        var location = util.get_obj(options.location_cookie);
-        if (!location || location.source !== 'google'){
-          win.gloader_ready = function() {
-            if ("google" in win){
-              if (win.google.loader.ClientLocation){
-                win.google.loader.ClientLocation.source = "google";
-                callback(win.google.loader.ClientLocation);
-              } else {
-                callback({error: true, source: "google"});
-              }
-              util.set_cookie(
-                options.location_cookie,
-                util.package_obj(win.google.loader.ClientLocation),
-                options.location_cookie_timeout * 60 * 60 * 1000);
-            }}
-          util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
-        } else {
-          callback(location);
-        }}
+    
+    device: function() {
+      
+      var os = function() {
+        
+        var vendor, os, match, version, data = {
+          'Microsoft': {
+            'Windows 8':       'Windows NT (6[.]2)',
+            'Windows 7':       'Windows NT (6[.]1)',
+            'Windows Vista':   'Windows NT (6[.]0)',
+            'Windows XP':      'Windows NT (5[.](?:1|2))',
+            'Windows Phone':   'Windows Phone OS',
+            'Windows Mobile':  'Windows Mobile',
+            'Windows CE':      'Windows CE'
+          },
+          'Apple': {
+            'Mac Power PC': 'Mac PPC|PPC|Mac PowerPC|Mac_PowerPC',
+            'Mac OS X':     'Mac OS X',
+            'Mac iOS':      'iPod|iPad|iPhone',
+            'Mac':          'Darwin|Macintosh|Power Macintosh|Mac OS'
+          },
+          'Google': {
+            'Android': 'Android'
+          },
+          'Canonical': {
+            'Kubuntu':  'Kubuntu',
+            'Xubuntu':  'Xubuntu',
+            'Edubuntu': 'Edubuntu',
+            'Ubuntu':   'Ubuntu'
+          },
+          // TODO: categorize (vendor)
+          'Other': {
+            'Debian':     'Debian',
+            'Fedora':     'Fedora',
+            'CentOS':     'CentOS|Cent OS',
+            'Linux Mint': 'Linux Mint',
+            'openSUSE':   'openSUSE',
+            'Linux':      'Linux',
+            'Maemo':      'Maemo',
+            'FreeBSD':    'FreeBSD',
+            'NetBSD':     'NetBSD',
+            'OpenBSD':    'OpenBSD',
+            'Dragonfly':  'Dragonfly',
+            'Syllable':   'Syllable'
+          },
+          'HP': {
+            'webOS':   'webOS',
+            'Palm OS': 'PalmOS|Palm OS'
+          },
+          'RIM': {
+            'BlackBerry':    'BlackBerry',
+            'RIM Tablet OS': 'RIM Tablet OS',
+            'QNX':           'QNX'
+          },
+          'Accenture': {
+            'Symbian OS': 'SymbOS|SymbianOS|Symbian OS'
+          },
+          'Samsung': {
+            'bada': 'bada'
+          },
+          'Nintendo': {
+            'Nintendo Wii': 'Nintendo Wii',
+            'Nintendo DS':  'Nintendo DS',
+            'Nintendo DSi': 'Nintendo DSi'
+          },
+          'Sony': {
+            'Playstation Portable': 'Playstation Portable',
+            'Playstation':          'Playstation'
+          },
+          'Oracle': {
+            'Solaris': 'SunOS|Sun OS'
+          }
+        };
+        
+        for( vendor in data ) {
+          for( os in data[vendor] ) {
+            match = nav.userAgent.match(
+              new RegExp( data[vendor][os] + '(?:(?:/| )([0-9._]*))?', 'i' )
+            );
+            if( match ) {
+              version = match[2] || match[1] || null;
+              // apple has os version numbers separated by underscores,
+              // so we'll have to account for that strange behavior
+              version = version ? version.replace( /_/g, '.' ) : null;
+              return {
+                vendor: vendor,
+                name: os,
+                version: version
+              };
+            }
+          }
+        }
+        
+        return null;
+      };
+      
+      var html   = doc.documentElement,
+          body   = doc.getElementsByTagName( 'body' )[0],
+          tablet = !!nav.userAgent.match( /(iPad|SCH-I800|xoom|kindle)/i ),
+          phone  = !!nav.userAgent.match ( /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i );
+          
+      return {
+        os: os(),
+        screen: {
+          width: scr.width,
+          height: scr.height,
+          pixel_ratio: win.devicePixelRatio || null
+        },
+        viewport: {
+          width: scr.availWidth || win.innerWidth || html.clientWidth || body.clientWidth,
+          height: scr.availHeight || win.innerHeight || html.clientHeight || body.clientHeight,
+          color_depth: scr.colorDepth || scr.pixelDepth || null
+        },
+        is_tablet: tablet,
+        is_phone: !tablet && phone,
+        is_mobile: tablet || phone
+      };
     },
-    ipinfodb_location: function(api_key){
-      return function (callback){
-        var location_cookie = util.get_obj(options.location_cookie);
-        if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
-        win.ipinfocb = function(data){
-          if (data.statusCode === "OK"){
-            data.source = "ipinfodb";
-            util.set_cookie(
-              options.location_cookie,
-              util.package_obj(data),
-              options.location_cookie * 60 * 60 * 1000);
-            callback(data);
+    
+    location: function() {
+      if( options.track_location ) {
+        
+        var html5_location = function( callback ) {
+          if( nav.geolocation ) {
+            nav.geolocation.getCurrentPosition( function( pos ) {
+              callback({
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracy: pos.coords.accuracy,
+                address: null,
+                source: 'client'
+              });
+            }, function( error ) {
+              if( options.gapi_location ) gapi_location( callback );
+              else callback( null );
+            });
+          }
+          else if( options.gapi_location )
+            gapi_location( callback );
+        }
+        
+        var gapi_location = function( callback ) {
+          var location = util.get_obj(options.location_cookie);
+          if (!location || location.source !== 'google') {
+            win.gloader_ready = function() {
+              if( 'google' in win ) {
+                var pos = win.google.loader.ClientLocation;
+                if( pos ) {
+                  callback({
+                    latitude: pos.latitude,
+                    longitude: pos.longitude,
+                    accuracy: null,
+                    address: pos.address,
+                    source: 'google'
+                  });
+                } else {
+                  callback( null );
+                }
+                util.set_cookie(
+                  options.location_cookie,
+                  util.package_obj( win.google.loader.ClientLocation ),
+                  options.location_cookie_timeout * 60 * 60 * 1000
+                );
+              }
+            };
+            util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
           } else {
-            if (options.gapi_location){ return modules.gapi_location()(callback); }
-            else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
-          }}
-        util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
-      }}
+            callback( location );
+          }
+        }
+        
+        var ipinfodb_location = function( callback ) {
+          api_key = options.ipinfodb_key;
+          var location = util.get_obj( options.location_cookie );
+          if( !location || location.source !== 'ipinfodb' ) {
+            win.ipinfocb = function( data ) {
+              if( data.statusCode === "OK" ) {
+                data.source = "ipinfodb";
+                util.set_cookie(
+                  options.location_cookie,
+                  util.package_obj( data ),
+                  options.location_cookie * 60 * 60 * 1000
+                );
+                callback( data );
+              } else {
+                if( options.gapi_location ) gapi_location( callback );
+                else callback( null );
+              }
+            };
+            util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
+          } else {
+            callback( location );
+          }
+        }
+        
+        if( options.html5_location ) return html5_location;
+        else if( options.ipinfodb_key ) return ipinfodb_location;
+        else if( options.gapi_location ) return gapi_location;
+        
+      } else return null;
+    }
+    
   };
   
   // Utilities
@@ -411,4 +518,4 @@
   // Initialize SessionRunner
   SessionRunner();
 
-})(window, document, navigator);
+})( this );
