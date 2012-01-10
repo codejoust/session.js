@@ -244,13 +244,13 @@
       return null;
     },
     
-    time: function(){
-      // split date and grab timezone estimation.
-      // timezone estimation: http://www.onlineaspect.com/2007/06/08/auto-detect-a-time-zone-with-javascript/
-      var d1 = new Date(), d2 = new Date();
-      d1.setMonth(0); d1.setDate(1); d2.setMonth(6); d2.setDate(1);
-      return({tz_offset: -(new Date().getTimezoneOffset()) / 60, observes_dst: (d1.getTimezoneOffset() !== d2.getTimezoneOffset()) });
-      // Gives a browser estimation, not guaranteed to be correct.
+    timezone: function(){
+      var A = new Date(); A.setMonth( 0 ); A.setDate( 1 );
+      var B = new Date(); B.setMonth( 6 ); B.setDate( 1 );
+      return {
+        offset: new Date().getTimezoneOffset() / -60,
+        dst: A.getTimezoneOffset() !== B.getTimezoneOffset()
+      };
     },
     locale: function() {
       var lang = (
