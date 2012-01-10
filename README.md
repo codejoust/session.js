@@ -7,7 +7,7 @@ To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
-[Live API Demo](http://go.iain.in/sessionjslivedemo01) | [Example Page]()
+[Live API Demo](http://go.iain.in/sessionjslivedemo01) | [Example Usage Page](http://go.iain.in/sessionjslivedemo02)
 
 Configurable <a href="#options">options</a> are below.
 
@@ -39,15 +39,17 @@ Quick Example:
 </script>
 <script src="http://codejoust.github.com/session.js/session-0.4.js"></script>
 ```
-#### Other Options:
-Edge:
-[uncompressed](http://codejoust.github.com/session.js/session.js),
-[compressed](http://codejoust.github.com/session.js/session.min.js) 
-Lock version to v0.4:
+#### Other Source Options:
+Lock version to v0.4 (current stable):
 [uncompressed](http://codejoust.github.com/session.js/session-0.4.js), 
 [compressed](http://codejoust.github.com/session.js/session-0.4.min.js).
 
-If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
+Edge:
+[uncompressed](http://codejoust.github.com/session.js/session.js),
+[compressed](http://codejoust.github.com/session.js/session.min.js) 
+
+
+If used in the footer (before the `</body>` tag), you can use the `window.session = {start: function(sess){ /* loaded session data */ }}` callback, before including the session.js. This is recommended when using session.js with location data.
 
 ### API demo dump of `window.session`:
 
