@@ -87,65 +87,60 @@
     check_asynch();
   };
   
-  
-  // Browser (and OS) detection
-  var browser = {
-    detect: function(){
-      return {
-        browser: this.search(this.data.browser),
-        version: this.search(nav.userAgent) || this.search(nav.appVersion),
-        os: this.search(this.data.os)
-    } },
-    search: function(data) {
-      if (typeof data === "object"){
-        // search for string match
-        for(var i = 0; i < data.length; i++) {
-          var dataString = data[i].string,
-              dataProp   = data[i].prop;
-          this.version_string = data[i].versionSearch || data[i].identity;
-          if (dataString){
-            if (dataString.indexOf(data[i].subString) != -1){
-              return data[i].identity;
-            }
-          } else if (dataProp){
-            return data[i].identity;
-          }
-        }
-      } else {
-        // search for version number
-        var index = data.indexOf(this.version_string);
-        if (index == -1) return;
-        return parseFloat(data.substr(index + this.version_string.length + 1));
-      }
-    },
-    data: {
-      browser: [
-        { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
-        { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
-        { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
-        { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
-        { string: nav.vendor, subString: "iCab",identity: "iCab" },
-        { string: nav.vendor, subString: "KDE", identity: "Konqueror" },
-        { string: nav.userAgent, subString: "Firefox", identity: "Firefox" },
-        { string: nav.vendor, subString: "Camino", identity: "Camino" },
-        { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
-        { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
-        { string: nav.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
-        { string: nav.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
-      ],
-      os: [
-        { string: nav.platform, subString: "Win", identity: "Windows" },
-        { string: nav.platform, subString: "Mac", identity: "Mac" },
-        { string: nav.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-        { string: nav.userAgent, subString: "iPad", identitiy: "iPad" },
-        { string: nav.platform, subString: "Linux", identity: "Linux" },
-        { string: nav.userAgent, subString: "Android", identity: "Android" }
-      ]}
-  };
-  
   var modules = {
     browser: function(){
-      return browser.detect();
+      
+      var identity = null, match, version;
+      
+      var data = {
+        'Chrome':             'Chrome',
+        'OmniWeb':            'OmniWeb',
+        'Safari':             'Apple',
+        'iCab':               'iCab',
+        'Konqueror':          'KDE',
+        'Firefox':            'Firefox',
+        'Camino':             'Camino',
+        'Internet Explorer':  'MSIE',
+        'Mozilla':            'Gecko',
+        'Opera':              'Opera'
+      };
+      
+      for( identity in data ) {
+        // match identity & version
+        match = nav.userAgent.match( new RegExp(
+          '(' + data[identity] + ')(?:(?:/| )([0-9._]*))?'
+        ));
+        // retrieve versions for opera, safari, ...
+        version = nav.userAgent.match(
+          /Version(?:\/| )([0-9._]*)/
+        );
+        // get out of the loop
+        if( match ) break;
+      }
+      
+      function plugins() {
+        if( !nav.plugins ) return null;
+        var checks = [ 'flash', 'silverlight', 'java', 'quicktime' ],
+            result = {}, plugin, name;
+        for( var i in checks ) {
+          name = checks[i]; result[name] = false;
+          for( var j in nav.plugins ) {
+            plugin = nav.plugins[j];
+            if( plugin.name && plugin.name.toLowerCase().indexOf( name ) !== -1 ) {
+              result[name] = true; break;
+            }
+          }
+        }
+        return result;
+      }
+      
+      return {
+        // vendor: nav.vendor || null,
+        name: identity,
+        version: version && version[1] || match && match[2] || null,
+        plugins: plugins()
+      };
+      
     },
     time: function(){
       // split date and grab timezone estimation.
@@ -185,25 +180,6 @@
       device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
       device.is_mobile = (device.is_tablet || device.is_phone);
       return device;
-    },
-    plugins: function(){
-      var check_plugin = function(name){
-        if (nav.plugins){
-          var plugin, i = 0, length = nav.plugins.length;
-          for (; i < length; i++ ){
-            plugin = nav.plugins[i];
-            if (plugin && plugin.name && plugin.name.toLowerCase().indexOf(name) !== -1){
-              return true;
-            } }
-          return false;
-        } return false;
-      }
-      return {
-        flash:       check_plugin("flash"),
-        silverlight: check_plugin("silverlight"),
-        java:        check_plugin("java"),
-        quicktime:   check_plugin("quicktime")
-      }; 
     },
     current_session: function (cookie, expires){
       var session = util.get_obj(cookie);
