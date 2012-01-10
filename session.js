@@ -77,7 +77,8 @@
     }
     // Set up checking, if all modules are ready
     var asynchs = 0, module, result,
-    check_asynch = function(){
+    check_asynch = function(deinc){
+      if (deinc){ asynchs--; }
       if (asynchs === 0){
         // Run start calback
         if (start){ start(win.session); }
@@ -91,13 +92,12 @@
         try {
           module(function(data){
             win.session[name] = data;
-            asynchs--;
-            check_asynch();
+            check_asynch(true);
           });
           asynchs++;
         } catch(err){
           if (win.console && typeof(console.log) === "function"){
-            console.log(err); }
+            console.log(err); check_asynch(true); }
         }
       } else {
         win.session[name] = module;

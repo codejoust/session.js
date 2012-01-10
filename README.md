@@ -7,7 +7,7 @@ To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
-[Live Demo](http://go.iain.in/sessionjslivedemo01)
+[Live API Demo](http://go.iain.in/sessionjslivedemo01) | [Example Page]()
 
 Configurable <a href="#options">options</a> are below.
 
@@ -16,12 +16,36 @@ Configurable <a href="#options">options</a> are below.
 Include `session.js` in the head or footer.
 
 #### Download/Linking:
+Recommended:
+[Api v0.4 Uncompressed](http://codejoust.github.com/session.js/session-0.4.js)
+
+Quick Example:
+```js
+<script>
+  window.session = {
+  options: { gapi_location: true },
+  start: function(session){ // also can use as a global
+    if (session.first_session.visits > 1){
+      alert('Hi again from ' + session.location.address.city);
+    } else {
+      if (session.current_session.referrer_info.host.contains('facebook')){
+        alert('Hi there from '+ session.location.address.city +'. How about liking us on facebook?');
+      } else if (session.current_session.search.engine){
+        alert('Did you find what you were looking for from ' + session.current_session.search.engine + '?');
+      }
+    }
+  }
+}
+</script>
+<script src="http://codejoust.github.com/session.js/session-0.4.js"></script>
+```
+#### Other Options:
 Edge:
 [uncompressed](http://codejoust.github.com/session.js/session.js),
-[compressed](http://codejoust.github.com/session.js/session.min.js)
-
+[compressed](http://codejoust.github.com/session.js/session.min.js) 
 Lock version to v0.4:
-[uncompressed](http://codejoust.github.com/session.js/session-0.4.js), [compressed](http://codejoust.github.com/session.js/session-0.4.min.js).
+[uncompressed](http://codejoust.github.com/session.js/session-0.4.js), 
+[compressed](http://codejoust.github.com/session.js/session-0.4.min.js).
 
 If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
 
@@ -36,8 +60,8 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
   },
   "current_session": {
     "visits": 1,
-    "start": 1326068806791,
-    "last_visit": 1326068806791,
+    "start": 1326170811877,
+    "last_visit": 1326170811877,
     "url": "http://codejoust.github.com/session.js/",
     "path": "/session.js/",
     "referrer": "",
@@ -55,9 +79,9 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     }
   },
   "original_session": {
-    "visits": 14,
+    "visits": 29,
     "start": 1326032481755,
-    "last_visit": 1326068806793,
+    "last_visit": 1326170811879,
     "url": "http://codejoust.github.com/session.js/",
     "path": "/session.js/",
     "referrer": "",
@@ -86,7 +110,6 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     "quicktime": true
   },
   "time": {
-    "timezone": "EST",
     "tz_offset": -5,
     "observes_dst": true
   },
@@ -96,8 +119,8 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
       "height": 1024
     },
     "viewport": {
-      "width": 1063,
-      "height": 860
+      "width": 1230,
+      "height": 952
     },
     "is_tablet": false,
     "is_phone": false,
