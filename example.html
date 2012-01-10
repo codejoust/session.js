@@ -1,0 +1,61 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <style>
+    html { background:#cceedd;margin-top:100px;}
+    body { line-height:40px; margin-bottom:140px;margin-top:140px;width: 600px; margin: 0 auto; background:#fff; font-family:helvetica; font-size: 1.3em; padding:10px;
+      -webkit-border-radius:10px; -o-border-radius:10px; -moz-border-radius:10px; border-radius:10px;
+       padding-left:20px; padding-right:20px; }
+      p{ font-size: 0.85em; }
+  </style>
+  <title>Session.js example usage</title>
+</head>
+<body>
+<h2>Session.js Example Usage:</h2>
+<div id="info">Info: </div>
+<div id="msg">loading motd...</div>
+<p>
+  <a href="https://github.com/codejoust/session.js/blob/gh-pages/example.html">View Example Source</a>
+</p>
+<div>
+  <h3>About</h3>
+  <p>Session.js is a javascript library that lets you customize your page according to the current session.</p>
+  <p>Such an example would be autosuggesting location box values, or timezones, based on either location or system settings returned by javascript.</p>
+  <p>For more information, check out the <a href="https://github.com/codejoust/session.js/">github project page</a> or the <a href="http://codejoust.github.com/session.js/">API demo</a>.</p>
+</div>
+<script>
+  function add_msg(text){ document.getElementById('info').innerHTML += '<li>' + text + '</li>'; }
+  window.session = {
+    options: { gapi_location: true },
+    // Async API (use with location)
+    start: function(session){ // also can use as a global
+      if (session.original_session.visits > 1){
+        if (session.location){ add_msg('Hi again from ' + session.location.address.city + '.'); }
+        else { add_msg('Welcome back!'); }
+      } else {
+        if (session.current_session.referrer_info.host.contains('facebook.com')){
+          add_msg('Hi there from '+ session.location.address.city +'. How about liking us on facebook?');
+        } else if (session.current_session.referrer_info.host.contains('github.com')){
+          add_msg('How about watching us on github?');
+        } else if (session.current_session.referrer_info.host.contains('twitter.com')){
+          add_msg('Hi there from twitter!');
+        } else if (session.current_session.search.engine){
+          add_msg('Did you find what you were looking for from ' + session.current_session.search.engine + '?');
+        }
+      }
+      if (session.locale.lang !== 'en'){
+        var translate_url = 'http://translate.google.com/translate?sl=auto&tl='+session.locale.lang+'&js=n&prev=_t&hl=en&ie=UTF-8&layout=2&eotf=1&u='+escape(session.current_session.url);
+        add_msg('Need a <a href="'+translate_url+'">translation</a>?');
+      }
+    }
+  };
+</script>
+<script src="http://codejoust.github.com/session.js/session-0.4.js"></script>
+<script>
+  // Synchronous API
+  if (session.original_session.visits){
+    document.getElementById('msg').innerHTML = "You've visited this page " + session.original_session.visits + " times.";
+  }
+</script>
+
+</body></html>
