@@ -260,19 +260,19 @@
       } else { return{lang: null, country: null }; }
     },
     device: function() {
-      var html   = document.documentElement,
-          body   = document.getElementsByTagName( 'body' )[0],
-          tablet = !!navigator.userAgent.match( /(iPad|SCH-I800|xoom|kindle)/i ),
-          phone  = !!navigator.userAgent.match ( /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i );
+      var html   = doc.documentElement,
+          body   = doc.getElementsByTagName( 'body' )[0],
+          tablet = !!nav.userAgent.match( /(iPad|SCH-I800|xoom|kindle)/i ),
+          phone  = !!nav.userAgent.match ( /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i );
       return {
         screen: {
           width: screen.width,
           height: screen.height,
-          pixel_ratio: window.devicePixelRatio || null
+          pixel_ratio: win.devicePixelRatio || null
         },
         viewport: {
-          width: screen.availWidth || window.innerWidth || html.clientWidth || body.clientWidth,
-          height: screen.availHeight || window.innerHeight || html.clientHeight || body.clientHeight,
+          width: screen.availWidth || win.innerWidth || html.clientWidth || body.clientWidth,
+          height: screen.availHeight || win.innerHeight || html.clientHeight || body.clientHeight,
           color_depth: screen.colorDepth || screen.pixelDepth || null
         },
         is_tablet: tablet,
