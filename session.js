@@ -48,60 +48,42 @@
       for (option in win.session.options){
         options[option] = win.session.options[option]; }
     }
-    // Modules to run
-    // If the module has arguments,
-    //   it _needs_ to return a callback function.
-    var unloaded_modules = {
-      api_version: API_VERSION,
-      locale: modules.locale(),
-      current_session: modules.session(),
-      original_session: modules.session(
-        options.session_cookie,
-        options.session_timeout * 24 * 60 * 60 * 1000),
-      browser: modules.browser(),
-      plugins: modules.plugins(),
-      time: modules.time(),
-      device: modules.device()
-    };
-    // Location switch
-    if (options.use_html5_location){
-      unloaded_modules.location = modules.html5_location();
-    } else if (options.ipinfodb_key){
-      unloaded_modules.location = modules.ipinfodb_location(options.ipinfodb_key);
-    } else if (options.gapi_location){
-      unloaded_modules.location = modules.gapi_location();
-    }
     // Cache win.session.start
     if (win.session && win.session.start){
       var start = win.session.start;
     }
     // Set up checking, if all modules are ready
-    var asynchs = 0, module, result,
-    check_asynch = function(deinc){
-      if (deinc){ asynchs--; }
-      if (asynchs === 0){
-        // Run start calback
-        if (start){ start(win.session); }
-      }
-    };
+    var name, module, asynchs = 0, self = this,
+        check_asynch = function( deinc ) {
+          if( deinc ) asynchs--;
+          if( asynchs === 0 ) {
+            if( start ) start( win.session );
+          }
+        }
+    // clear
     win.session = {};
-    // Run asynchronous methods
-    for (var name in unloaded_modules){
-      module = unloaded_modules[name];
-      if (typeof module === "function"){
+    // run modules
+    for( var name in modules ) {
+      module = modules[name]();
+      if( typeof module === 'function' ) {
         try {
-          module(function(data){
+          module( function( data ) {
             win.session[name] = data;
-            check_asynch(true);
+            check_asynch( true );
           });
           asynchs++;
-        } catch(err){
-          if (win.console && typeof(console.log) === "function"){
-            console.log(err); check_asynch(true); }
+        }
+        catch( error ) {
+          if( win.console && typeof console.log === 'function' ) {
+            console.log( error );
+            check_asynch( true );
+          }
         }
       } else {
         win.session[name] = module;
-      } }
+      }
+    }
+    // initial check
     check_asynch();
   };
   
@@ -223,7 +205,7 @@
         quicktime:   check_plugin("quicktime")
       }; 
     },
-    session: function (cookie, expires){
+    current_session: function (cookie, expires){
       var session = util.get_obj(cookie);
       if (session == null){
         session = {
@@ -269,59 +251,74 @@
       util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
     },
+    original_session: function() {
+      return this.current_session(
+        options.session_cookie,
+        options.session_timeout * 24 * 60 * 60 * 1000
+      );
+    },
     html5_location: function(){
-      return function(callback){
-        nav.geolocation.getCurrentPosition(function(pos){
-          pos.source = 'html5';
-          callback(pos);
-        }, function(err) {
-          if (options.gapi_location){
-            modules.gapi_location()(callback);
-          } else {
-            callback({error: true, source: 'html5'}); }
-        });
-      };
+      if( options.use_html5_location ) {
+        return function(callback){
+          nav.geolocation.getCurrentPosition(function(pos){
+            pos.source = 'html5';
+            callback(pos);
+          }, function(err) {
+            if (options.gapi_location){
+              modules.gapi_location()(callback);
+            } else {
+              callback({error: true, source: 'html5'}); }
+          });
+        };
+      }
     },
     gapi_location: function(){
-      return function(callback){
-        var location = util.get_obj(options.location_cookie);
-        if (!location || location.source !== 'google'){
-          win.gloader_ready = function() {
-            if ("google" in win){
-              if (win.google.loader.ClientLocation){
-                win.google.loader.ClientLocation.source = "google";
-                callback(win.google.loader.ClientLocation);
-              } else {
-                callback({error: true, source: "google"});
-              }
-              util.set_cookie(
-                options.location_cookie,
-                util.package_obj(win.google.loader.ClientLocation),
-                options.location_cookie_timeout * 60 * 60 * 1000);
-            }}
-          util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
-        } else {
-          callback(location);
-        }}
+      if( options.gapi_location ) {
+        return function(callback){
+          var location = util.get_obj(options.location_cookie);
+          if (!location || location.source !== 'google'){
+            win.gloader_ready = function() {
+              if ("google" in win){
+                if (win.google.loader.ClientLocation){
+                  win.google.loader.ClientLocation.source = "google";
+                  callback(win.google.loader.ClientLocation);
+                } else {
+                  callback({error: true, source: "google"});
+                }
+                util.set_cookie(
+                  options.location_cookie,
+                  util.package_obj(win.google.loader.ClientLocation),
+                  options.location_cookie_timeout * 60 * 60 * 1000);
+              }}
+            util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
+          } else {
+            callback(location);
+          }
+        }
+      }
     },
     ipinfodb_location: function(api_key){
-      return function (callback){
-        var location_cookie = util.get_obj(options.location_cookie);
-        if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
-        win.ipinfocb = function(data){
-          if (data.statusCode === "OK"){
-            data.source = "ipinfodb";
-            util.set_cookie(
-              options.location_cookie,
-              util.package_obj(data),
-              options.location_cookie * 60 * 60 * 1000);
-            callback(data);
-          } else {
-            if (options.gapi_location){ return modules.gapi_location()(callback); }
-            else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
-          }}
-        util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
-      }}
+      if( options.ipinfodb_key ) {
+        api_key = api_key || options.ipinfodb_key;
+        return function (callback){
+          var location_cookie = util.get_obj(options.location_cookie);
+          if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
+          win.ipinfocb = function(data){
+            if (data.statusCode === "OK"){
+              data.source = "ipinfodb";
+              util.set_cookie(
+                options.location_cookie,
+                util.package_obj(data),
+                options.location_cookie * 60 * 60 * 1000);
+              callback(data);
+            } else {
+              if (options.gapi_location){ return modules.gapi_location()(callback); }
+              else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
+            }}
+          util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
+        }
+      }
+    }
   };
   
   // Utilities
