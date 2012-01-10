@@ -258,12 +258,11 @@
         nav.browserLanguage ||
         nav.systemLanguage  ||
         nav.userLanguage
-      ).split("-");
-      if (lang.length == 2){
-        return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
-      } else if (lang) {
-        return {lang: lang[0].toLowerCase(), country: null };
-      } else { return{lang: null, country: null }; }
+      ).toLowerCase().split( '-' );
+      return {
+        country: ( lang[1] || lang[0] ) || null,
+        language: lang[0] || null
+      };
     },
     device: function() {
       var html   = doc.documentElement,
