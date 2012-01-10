@@ -20,11 +20,12 @@ Recommended:
 [Api v0.4 Uncompressed](http://codejoust.github.com/session.js/session-0.4.js)
 
 Quick Example:
-```js
-<script>
+
+```html
+<script type='text/javascript'>
   window.session = {
   options: { gapi_location: true },
-  start: function(session){ // also can use as a global
+  start: function(session){ // can also use window.session global.
     if (session.first_session.visits > 1){
       alert('Hi again from ' + session.location.address.city);
     } else {
@@ -37,8 +38,9 @@ Quick Example:
   }
 }
 </script>
-<script src="http://codejoust.github.com/session.js/session-0.4.js"></script>
+<script type='text/javascript' src="http://codejoust.github.com/session.js/session-0.4.js"></script>
 ```
+
 #### Other Source Options:
 Lock version to v0.4 (current stable):
 [uncompressed](http://codejoust.github.com/session.js/session-0.4.js), 
