@@ -6,7 +6,13 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc, nav){
+(function(win){
+  
+  // References for better js compression
+  var doc = win.document,
+      nav = win.navigator,
+      scr = win.screen;
+  
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
   
@@ -266,14 +272,14 @@
           phone  = !!nav.userAgent.match ( /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i );
       return {
         screen: {
-          width: screen.width,
-          height: screen.height,
+          width: scr.width,
+          height: scr.height,
           pixel_ratio: win.devicePixelRatio || null
         },
         viewport: {
-          width: screen.availWidth || win.innerWidth || html.clientWidth || body.clientWidth,
-          height: screen.availHeight || win.innerHeight || html.clientHeight || body.clientHeight,
-          color_depth: screen.colorDepth || screen.pixelDepth || null
+          width: scr.availWidth || win.innerWidth || html.clientWidth || body.clientWidth,
+          height: scr.availHeight || win.innerHeight || html.clientHeight || body.clientHeight,
+          color_depth: scr.colorDepth || scr.pixelDepth || null
         },
         is_tablet: tablet,
         is_phone: !tablet && phone,
@@ -483,4 +489,4 @@
   // Initialize SessionRunner
   SessionRunner();
 
-})(window, document, navigator);
+})( this );
