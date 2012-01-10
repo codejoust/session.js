@@ -178,8 +178,8 @@ window.session = {
     session_cookie: "first_session"
     };
   },
-  start: {
-    // Session location loaded.
+  start: function(session){
+    // Session location loaded into window.session and first argument.
   }
 }
 ```
