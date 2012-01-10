@@ -35,15 +35,23 @@
   
   // Session object
   var SessionRunner = function(){
+    // Helper for querying.
+    // Usage: session.current_session.referrer_info.hostname.contains(['github.com','news.ycombinator.com'])
+    String.prototype.contains = function(other_str){
+      if (typeof(other_str) === 'string'){
+        return (this.indexOf(other_str) !== -1); }
+      for (var i = 0; i < other_str.length; i++){
+        if (this.indexOf(other_str[i]) !== -1){ return true; } }
+      return false; }
     // Merge options
-    if(win.session && win.session.options) {
+    if (win.session && win.session.options) {
       for (option in win.session.options){
         options[option] = win.session.options[option]; }
     }
     // Modules to run
     // If the module has arguments,
     //   it _needs_ to return a callback function.
-    this.modules = {
+    var unloaded_modules = {
       api_version: API_VERSION,
       locale: modules.locale(),
       current_session: modules.session(),
@@ -57,45 +65,43 @@
     };
     // Location switch
     if (options.use_html5_location){
-      this.modules.location = modules.html5_location();
+      unloaded_modules.location = modules.html5_location();
     } else if (options.ipinfodb_key){
-      this.modules.location = modules.ipinfodb_location(options.ipinfodb_key);
+      unloaded_modules.location = modules.ipinfodb_location(options.ipinfodb_key);
     } else if (options.gapi_location){
-      this.modules.location = modules.gapi_location();
+      unloaded_modules.location = modules.gapi_location();
     }
     // Cache win.session.start
     if (win.session && win.session.start){
       var start = win.session.start;
     }
     // Set up checking, if all modules are ready
-    var asynchs = 0, module, result, self = this,
+    var asynchs = 0, module, result,
     check_asynch = function(){
       if (asynchs === 0){
-        // Map over results
-        win.session = self.modules;
         // Run start calback
-        if (start){ start(self.modules); }
+        if (start){ start(win.session); }
       }
     };
+    win.session = {};
     // Run asynchronous methods
-    for (var name in this.modules){
-      module = self.modules[name];
-      if(typeof module === "function"){
+    for (var name in unloaded_modules){
+      module = unloaded_modules[name];
+      if (typeof module === "function"){
         try {
-          asynchs++;
           module(function(data){
-            self.modules[name] = data;
+            win.session[name] = data;
             asynchs--;
             check_asynch();
           });
+          asynchs++;
         } catch(err){
           if (win.console && typeof(console.log) === "function"){
             console.log(err); }
         }
       } else {
-        self.modules[name] = module;
-      }
-    }
+        win.session[name] = module;
+      } }
     check_asynch();
   };
   
