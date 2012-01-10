@@ -96,6 +96,74 @@
   };
   
   var modules = {
+    
+    locale: function() {
+      var lang = (
+        nav.language        ||
+        nav.browserLanguage ||
+        nav.systemLanguage  ||
+        nav.userLanguage
+      ).toLowerCase().split( '-' );
+      return {
+        country: ( lang[1] || lang[0] ) || null,
+        language: lang[0] || null
+      };
+    },
+    
+    current_session: function (cookie, expires){
+      var session = util.get_obj(cookie);
+      if (session == null){
+        session = {
+          visits: 1,
+          start: new Date().getTime(), last_visit: new Date().getTime(),
+          url: win.location.href, path: win.location.pathname,
+          referrer: doc.referrer, referrer_info: util.parse_url(doc.referrer),
+          search: { engine: null, query: null }
+        };
+        var search_engines = [
+          { name: "Google", host: "google", query: "q" },
+          { name: "Bing", host: "bing.com", query: "q" },
+          { name: "Yahoo", host: "search.yahoo", query: "p" },
+          { name: "AOL", host: "search.aol", query: "q" },
+          { name: "Ask", host: "ask.com", query: "q" },
+          { name: "Baidu", host: "baidu.com", query: "wd" }
+        ], length = search_engines.length,
+           engine, match, i = 0,
+           fallbacks = 'q query term p wd query text'.split(' ');
+        for (i = 0; i < length; i++){
+          engine = search_engines[i];
+          if (session.referrer_info.host.indexOf(engine.host) !== -1){
+            session.search.engine = engine.name;
+            session.search.query  = session.referrer_info.query[engine.query];
+            session.search.terms  = session.search.query ? session.search.query.split(" ") : null;
+            break;
+          }
+        }
+        if (session.search.engine === null && session.referrer_info.search.length > 1){
+          for (i = 0; i < fallbacks.length; i++){
+            var terms = session.referrer_info.query[fallbacks[i]];
+            if (terms){
+              session.search.engine = "Unknown";
+              session.search.query  = terms; session.search.terms  = terms.split(" ");
+              break;
+            }
+          } 
+        }
+      } else {
+        session.last_visit = new Date().getTime();
+        session.visits++;
+      }
+      util.set_cookie(cookie, util.package_obj(session), expires);
+      return session;
+    },
+    
+    original_session: function() {
+      return this.current_session(
+        options.session_cookie,
+        options.session_timeout * 24 * 60 * 60 * 1000
+      );
+    },
+    
     browser: function(){
       
       var identity = null, match, version;
@@ -254,18 +322,7 @@
         dst: A.getTimezoneOffset() !== B.getTimezoneOffset()
       };
     },
-    locale: function() {
-      var lang = (
-        nav.language        ||
-        nav.browserLanguage ||
-        nav.systemLanguage  ||
-        nav.userLanguage
-      ).toLowerCase().split( '-' );
-      return {
-        country: ( lang[1] || lang[0] ) || null,
-        language: lang[0] || null
-      };
-    },
+    
     device: function() {
       var html   = doc.documentElement,
           body   = doc.getElementsByTagName( 'body' )[0],
@@ -287,58 +344,7 @@
         is_mobile: tablet || phone
       };
     },
-    current_session: function (cookie, expires){
-      var session = util.get_obj(cookie);
-      if (session == null){
-        session = {
-          visits: 1,
-          start: new Date().getTime(), last_visit: new Date().getTime(),
-          url: win.location.href, path: win.location.pathname,
-          referrer: doc.referrer, referrer_info: util.parse_url(doc.referrer),
-          search: { engine: null, query: null }
-        };
-        var search_engines = [
-          { name: "Google", host: "google", query: "q" },
-          { name: "Bing", host: "bing.com", query: "q" },
-          { name: "Yahoo", host: "search.yahoo", query: "p" },
-          { name: "AOL", host: "search.aol", query: "q" },
-          { name: "Ask", host: "ask.com", query: "q" },
-          { name: "Baidu", host: "baidu.com", query: "wd" }
-        ], length = search_engines.length,
-           engine, match, i = 0,
-           fallbacks = 'q query term p wd query text'.split(' ');
-        for (i = 0; i < length; i++){
-          engine = search_engines[i];
-          if (session.referrer_info.host.indexOf(engine.host) !== -1){
-            session.search.engine = engine.name;
-            session.search.query  = session.referrer_info.query[engine.query];
-            session.search.terms  = session.search.query ? session.search.query.split(" ") : null;
-            break;
-          }
-        }
-        if (session.search.engine === null && session.referrer_info.search.length > 1){
-          for (i = 0; i < fallbacks.length; i++){
-            var terms = session.referrer_info.query[fallbacks[i]];
-            if (terms){
-              session.search.engine = "Unknown";
-              session.search.query  = terms; session.search.terms  = terms.split(" ");
-              break;
-            }
-          } 
-        }
-      } else {
-        session.last_visit = new Date().getTime();
-        session.visits++;
-      }
-      util.set_cookie(cookie, util.package_obj(session), expires);
-      return session;
-    },
-    original_session: function() {
-      return this.current_session(
-        options.session_cookie,
-        options.session_timeout * 24 * 60 * 60 * 1000
-      );
-    },
+    
     location: function() {
       if( options.track_location ) {
         
