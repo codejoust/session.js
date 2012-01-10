@@ -218,101 +218,6 @@
       };
       
     },
-  
-    os: function() {
-      
-      var data, vendor, os, match, version;
-      
-      data = {
-        'Microsoft': {
-          'Windows 8':       'Windows NT (6[.]2)',
-          'Windows 7':       'Windows NT (6[.]1)',
-          'Windows Vista':   'Windows NT (6[.]0)',
-          'Windows XP':      'Windows NT (5[.](?:1|2))',
-          'Windows Phone':   'Windows Phone OS',
-          'Windows Mobile':  'Windows Mobile',
-          'Windows CE':      'Windows CE'
-        },
-        'Apple': {
-          'Mac Power PC': 'Mac PPC|PPC|Mac PowerPC|Mac_PowerPC',
-          'Mac OS X':     'Mac OS X',
-          'Mac iOS':      'iPod|iPad|iPhone',
-          'Mac':          'Darwin|Macintosh|Power Macintosh|Mac OS'
-        },
-        'Google': {
-          'Android': 'Android'
-        },
-        'Canonical': {
-          'Kubuntu':  'Kubuntu',
-          'Xubuntu':  'Xubuntu',
-          'Edubuntu': 'Edubuntu',
-          'Ubuntu':   'Ubuntu'
-        },
-        // TODO: categorize (vendor)
-        'Other': {
-          'Debian':     'Debian',
-          'Fedora':     'Fedora',
-          'CentOS':     'CentOS|Cent OS',
-          'Linux Mint': 'Linux Mint',
-          'openSUSE':   'openSUSE',
-          'Linux':      'Linux',
-          'Maemo':      'Maemo',
-          'FreeBSD':    'FreeBSD',
-          'NetBSD':     'NetBSD',
-          'OpenBSD':    'OpenBSD',
-          'Dragonfly':  'Dragonfly',
-          'Syllable':   'Syllable'
-        },
-        'HP': {
-          'webOS':   'webOS',
-          'Palm OS': 'PalmOS|Palm OS'
-        },
-        'RIM': {
-          'BlackBerry':    'BlackBerry',
-          'RIM Tablet OS': 'RIM Tablet OS',
-          'QNX':           'QNX'
-        },
-        'Accenture': {
-          'Symbian OS': 'SymbOS|SymbianOS|Symbian OS'
-        },
-        'Samsung': {
-          'bada': 'bada'
-        },
-        'Nintendo': {
-          'Nintendo Wii': 'Nintendo Wii',
-          'Nintendo DS':  'Nintendo DS',
-          'Nintendo DSi': 'Nintendo DSi'
-        },
-        'Sony': {
-          'Playstation Portable': 'Playstation Portable',
-          'Playstation':          'Playstation'
-        },
-        'Oracle': {
-          'Solaris': 'SunOS|Sun OS'
-        }
-      };
-      
-      for( vendor in data ) {
-        for( os in data[vendor] ) {
-          match = nav.userAgent.match(
-            new RegExp( data[vendor][os] + '(?:(?:/| )([0-9._]*))?', 'i' )
-          );
-          if( match ) {
-            version = match[2] || match[1] || null;
-            // apple has os version numbers separated by underscores,
-            // so we'll have to account for that strange behavior
-            version = version ? version.replace( /_/g, '.' ) : null;
-            return {
-              vendor: vendor,
-              name: os,
-              version: version
-            };
-          }
-        }
-      }
-      
-      return null;
-    },
     
     timezone: function(){
       var A = new Date(); A.setMonth( 0 ); A.setDate( 1 );
@@ -324,11 +229,107 @@
     },
     
     device: function() {
+      
+      var os = function() {
+        
+        var vendor, os, match, version, data = {
+          'Microsoft': {
+            'Windows 8':       'Windows NT (6[.]2)',
+            'Windows 7':       'Windows NT (6[.]1)',
+            'Windows Vista':   'Windows NT (6[.]0)',
+            'Windows XP':      'Windows NT (5[.](?:1|2))',
+            'Windows Phone':   'Windows Phone OS',
+            'Windows Mobile':  'Windows Mobile',
+            'Windows CE':      'Windows CE'
+          },
+          'Apple': {
+            'Mac Power PC': 'Mac PPC|PPC|Mac PowerPC|Mac_PowerPC',
+            'Mac OS X':     'Mac OS X',
+            'Mac iOS':      'iPod|iPad|iPhone',
+            'Mac':          'Darwin|Macintosh|Power Macintosh|Mac OS'
+          },
+          'Google': {
+            'Android': 'Android'
+          },
+          'Canonical': {
+            'Kubuntu':  'Kubuntu',
+            'Xubuntu':  'Xubuntu',
+            'Edubuntu': 'Edubuntu',
+            'Ubuntu':   'Ubuntu'
+          },
+          // TODO: categorize (vendor)
+          'Other': {
+            'Debian':     'Debian',
+            'Fedora':     'Fedora',
+            'CentOS':     'CentOS|Cent OS',
+            'Linux Mint': 'Linux Mint',
+            'openSUSE':   'openSUSE',
+            'Linux':      'Linux',
+            'Maemo':      'Maemo',
+            'FreeBSD':    'FreeBSD',
+            'NetBSD':     'NetBSD',
+            'OpenBSD':    'OpenBSD',
+            'Dragonfly':  'Dragonfly',
+            'Syllable':   'Syllable'
+          },
+          'HP': {
+            'webOS':   'webOS',
+            'Palm OS': 'PalmOS|Palm OS'
+          },
+          'RIM': {
+            'BlackBerry':    'BlackBerry',
+            'RIM Tablet OS': 'RIM Tablet OS',
+            'QNX':           'QNX'
+          },
+          'Accenture': {
+            'Symbian OS': 'SymbOS|SymbianOS|Symbian OS'
+          },
+          'Samsung': {
+            'bada': 'bada'
+          },
+          'Nintendo': {
+            'Nintendo Wii': 'Nintendo Wii',
+            'Nintendo DS':  'Nintendo DS',
+            'Nintendo DSi': 'Nintendo DSi'
+          },
+          'Sony': {
+            'Playstation Portable': 'Playstation Portable',
+            'Playstation':          'Playstation'
+          },
+          'Oracle': {
+            'Solaris': 'SunOS|Sun OS'
+          }
+        };
+        
+        for( vendor in data ) {
+          for( os in data[vendor] ) {
+            match = nav.userAgent.match(
+              new RegExp( data[vendor][os] + '(?:(?:/| )([0-9._]*))?', 'i' )
+            );
+            if( match ) {
+              version = match[2] || match[1] || null;
+              // apple has os version numbers separated by underscores,
+              // so we'll have to account for that strange behavior
+              version = version ? version.replace( /_/g, '.' ) : null;
+              return {
+                vendor: vendor,
+                name: os,
+                version: version
+              };
+            }
+          }
+        }
+        
+        return null;
+      };
+      
       var html   = doc.documentElement,
           body   = doc.getElementsByTagName( 'body' )[0],
           tablet = !!nav.userAgent.match( /(iPad|SCH-I800|xoom|kindle)/i ),
           phone  = !!nav.userAgent.match ( /(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i );
+          
       return {
+        os: os(),
         screen: {
           width: scr.width,
           height: scr.height,
