@@ -174,12 +174,12 @@ var session_fetch = (function(win, doc, nav){
       // Gives a browser estimation, not guaranteed to be correct.
     },
     locale: function() {
-      var lang = (
+      var lang = ((
         nav.language        ||
         nav.browserLanguage ||
         nav.systemLanguage  ||
         nav.userLanguage
-      ).split("-");
+      ) || '').split("-");
       if (lang.length == 2){
         return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
       } else if (lang) {

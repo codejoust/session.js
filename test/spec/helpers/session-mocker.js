@@ -23,6 +23,16 @@ function create_mock_doc(){
   return doc;
 }
 
+function create_mock_navigator(){
+  return {
+    userAgent: navigator.userAgent,
+    appVersion: 0.4,
+    vendor: 'testing',
+    platform: 'linux',
+    language: 'en-US'
+  }
+}
+
 function create_mock(sess_obj){
   if (!sess_obj){
     var sess_obj = {options: { gapi_location: false }};
@@ -30,7 +40,7 @@ function create_mock(sess_obj){
   var mock = {
     sess: null // sets initial state
     , win: {innerWidth: 200, innerHeight: 200, location: window.location, session: sess_obj}
-    , nav: navigator
+    , nav: create_mock_navigator()
     , get_cookie_obj: function(cookie_name){
       return JSON.parse(unescape(this.doc.cookiejar.getCookie(cookie_name, cookiejar.CookieAccessInfo()).value));
    }, doc: create_mock_doc()
