@@ -6,7 +6,7 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc, nav){
+var session_fetch = (function(win, doc, nav){
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
   
@@ -352,7 +352,7 @@
       if (!options){ var options = {}; }
       if (value === null || value === undefined){ expires = -1; }
       if (expires){ options.expires = (new Date().getTime()) + expires; }
-      return (document.cookie = [
+      return (doc.cookie = [
           encodeURIComponent(cname), '=',
           encodeURIComponent(String(value)),
           options.expires ? '; expires=' + new Date(options.expires).toUTCString() : '', // use expires attribute, max-age is not supported by IE
@@ -362,7 +362,7 @@
       ].join(''));
     },
     get_cookie: function(cookie_name, result){ // from jquery.cookie.js
-      return (result = new RegExp('(?:^|; )' + encodeURIComponent(cookie_name) + '=([^;]*)').exec(document.cookie)) ? decodeURIComponent(result[1]) : null;
+      return (result = new RegExp('(?:^|; )' + encodeURIComponent(cookie_name) + '=([^;]*)').exec(doc.cookie)) ? decodeURIComponent(result[1]) : null;
     },
     embed_script: function(url){
       var element  = doc.createElement("script");
@@ -411,4 +411,10 @@
   // Initialize SessionRunner
   SessionRunner();
 
-})(window, document, navigator);
+});
+
+if (typeof(exports) === 'undefined'){
+  session_fetch(window, document, navigator);
+} else {
+  exports.session = session_fetch;
+}

@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Jasmine Spec Runner for Session.js</title>
+
+  <link rel="shortcut icon" type="image/png" href="spec/jasmine/jasmine_favicon.png">
+
+  <link rel="stylesheet" type="text/css" href="spec/jasmine/jasmine.css">
+  <script type="text/javascript" src="spec/jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="spec/jasmine/jasmine-html.js"></script>
+
+
+  <!-- include helper files -->
+  <script>
+    /*  enable testing mode for session.js */
+    window.exports = {};
+  </script>
+   
+  <script type="text/javascript" src="spec/helpers/session-mocker.js"></script>
+  <script type="text/javascript" src="spec/helpers/cookiejar.js"></script>
+  <script type="text/javascript" src="spec/helpers/date.format.js"></script>
+
+  <!-- include source files -->
+  <script type="text/javascript" src="../session.js"></script>
+
+  <!-- include spec files -->
+  <script type="text/javascript" src="spec/session-info-spec.js"></script>
+  <script type="text/javascript" src="spec/timezone-spec.js"></script>
+  <script type="text/javascript" src="spec/session-api-spec.js"></script>
+  
+
+  <script type="text/javascript">
+    // Setup jasmine enviroment and run.
+    (function() {
+      var jasmineEnv = jasmine.getEnv();
+      jasmineEnv.updateInterval = 1000;
+
+      var trivialReporter = new jasmine.TrivialReporter();
+
+      jasmineEnv.addReporter(trivialReporter);
+
+      jasmineEnv.specFilter = function(spec) {
+        return trivialReporter.specFilter(spec);
+      };
+
+      var currentWindowOnload = window.onload;
+
+      window.onload = function() {
+        if (currentWindowOnload) {
+          currentWindowOnload();
+        }
+        execJasmine();
+      };
+
+      function execJasmine() {
+        jasmineEnv.execute();
+      }
+
+    })();
+  </script>
+
+</head>
+<body>
+  <p>Session.js test runner</p>
+</body>
+</html>
