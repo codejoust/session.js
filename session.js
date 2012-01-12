@@ -348,7 +348,7 @@
         query:    query }
     },
     set_cookie: function(cname, value, expires, options){ // from jquery.cookie.js
-      if (!doc.cookie || !cname || !value){ return null; }
+      if (!cname){ return null; }
       if (!options){ var options = {}; }
       if (value === null || value === undefined){ expires = -1; }
       if (expires){ options.expires = (new Date().getTime()) + expires; }
@@ -356,7 +356,7 @@
           encodeURIComponent(cname), '=',
           encodeURIComponent(String(value)),
           options.expires ? '; expires=' + new Date(options.expires).toUTCString() : '', // use expires attribute, max-age is not supported by IE
-          '; path=' + options.path ? options.path : '/',
+          '; path=' + (options.path ? options.path : '/'),
           options.domain ? '; domain=' + options.domain : '',
           (win.location && win.location.protocol === 'https:') ? '; secure' : ''
       ].join(''));
