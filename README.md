@@ -7,7 +7,7 @@ To use: include the file session.js, then access the visitor object.
 It uses the google javascript loader to get location data.
 For async loading, use the window.session_loaded callback.
 
-[Live Demo](http://go.iain.in/sessionjslivedemo01)
+[Live API Demo](http://go.iain.in/sessionjslivedemo01) | [Example Usage Page](http://go.iain.in/sessionjslivedemo02)
 
 Configurable <a href="#options">options</a> are below.
 
@@ -16,14 +16,42 @@ Configurable <a href="#options">options</a> are below.
 Include `session.js` in the head or footer.
 
 #### Download/Linking:
+Recommended:
+[Api v0.4 Uncompressed](http://codejoust.github.com/session.js/session-0.4.js)
+
+Quick Example:
+
+```html
+<script type='text/javascript'>
+  window.session = {
+  options: { gapi_location: true },
+  start: function(session){ // can also use window.session global.
+    if (session.first_session.visits > 1){
+      alert('Hi again from ' + session.location.address.city);
+    } else {
+      if (session.current_session.referrer_info.host.contains('facebook')){
+        alert('Hi there from '+ session.location.address.city +'. How about liking us on facebook?');
+      } else if (session.current_session.search.engine){
+        alert('Did you find what you were looking for from ' + session.current_session.search.engine + '?');
+      }
+    }
+  }
+}
+</script>
+<script type='text/javascript' src="http://codejoust.github.com/session.js/session-0.4.js"></script>
+```
+
+#### Other Source Options:
+Lock version to v0.4 (current stable):
+[uncompressed](http://codejoust.github.com/session.js/session-0.4.js), 
+[compressed](http://codejoust.github.com/session.js/session-0.4.min.js).
+
 Edge:
-[uncompressed](https://raw.github.com/codejoust/session.js/master/session.js),
-[compressed](https://raw.github.com/codejoust/session.js/master/session.min.js)
+[uncompressed](http://codejoust.github.com/session.js/session.js),
+[compressed](http://codejoust.github.com/session.js/session.min.js) 
 
-Lock version to v0.4:
-[uncompressed](https://raw.github.com/codejoust/session.js/v0.4/session.js), [compressed](https://raw.github.com/codejoust/session.js/v0.4/session.min.js).
 
-If used in the footer (before the `</body>` tag), you can use the `window.session_loaded = function(session){}` callback).
+If used in the footer (before the `</body>` tag), you can use the `window.session = {start: function(sess){ /* loaded session data */ }}` callback, before including the session.js. This is recommended when using session.js with location data.
 
 ### API demo dump of `window.session`:
 
@@ -36,8 +64,8 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
   },
   "current_session": {
     "visits": 1,
-    "start": 1326068806791,
-    "last_visit": 1326068806791,
+    "start": 1326170811877,
+    "last_visit": 1326170811877,
     "url": "http://codejoust.github.com/session.js/",
     "path": "/session.js/",
     "referrer": "",
@@ -55,9 +83,9 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     }
   },
   "original_session": {
-    "visits": 14,
+    "visits": 29,
     "start": 1326032481755,
-    "last_visit": 1326068806793,
+    "last_visit": 1326170811879,
     "url": "http://codejoust.github.com/session.js/",
     "path": "/session.js/",
     "referrer": "",
@@ -86,7 +114,6 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
     "quicktime": true
   },
   "time": {
-    "timezone": "EST",
     "tz_offset": -5,
     "observes_dst": true
   },
@@ -96,8 +123,8 @@ If used in the footer (before the `</body>` tag), you can use the `window.sessio
       "height": 1024
     },
     "viewport": {
-      "width": 1063,
-      "height": 860
+      "width": 1230,
+      "height": 952
     },
     "is_tablet": false,
     "is_phone": false,
@@ -151,8 +178,8 @@ window.session = {
     session_cookie: "first_session"
     };
   },
-  start: {
-    // Session location loaded.
+  start: function(session){
+    // Session location loaded into window.session and first argument.
   }
 }
 ```

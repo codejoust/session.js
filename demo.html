@@ -141,10 +141,11 @@
     window.session = {
       options: {
         use_html5_location: false,
+        gapi_location: true,
         session_timeout: 5
       },
       start: function( data ) {
-        document.getElementsByTagName('pre')[0].innerHTML = JSONf.stringify( data, undefined, 2 );
+        document.getElementsByTagName('pre')[0].innerHTML = JSONf.stringify( session, undefined, 2 );
       }
     };
   </script> 
