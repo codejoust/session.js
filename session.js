@@ -356,7 +356,7 @@
           encodeURIComponent(cname), '=',
           encodeURIComponent(String(value)),
           options.expires ? '; expires=' + new Date(options.expires).toUTCString() : '', // use expires attribute, max-age is not supported by IE
-          options.path ? '; path=' + options.path : '/',
+          '; path=' + options.path ? options.path : '/',
           options.domain ? '; domain=' + options.domain : '',
           (win.location && win.location.protocol === 'https:') ? '; secure' : ''
       ].join(''));
