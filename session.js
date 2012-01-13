@@ -9,7 +9,6 @@
 var session_fetch = (function(win, doc, nav){
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
-  
   // Settings: defaults
   var options = {
     // Use the HTML5 Geolocation API
@@ -189,19 +188,17 @@ var session_fetch = (function(win, doc, nav){
     device: function() {
       var device = {
         screen: {
-          width: screen.width,
-          height: screen.height
+          width:  win.screen.width,
+          height: win.screen.height
         }
       };
-      var html = doc.documentElement,
-          body = doc.getElementsByTagName("body")[0];
       device.viewport = {
-        width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
-        height: win.innerHeight || html.clientHeight || body.clientHeight
+        width:  win.innerWidth || doc.body.clientWidth || doc.documentElement.clientWidth,
+        height: win.innerHeight || doc.body.clientHeight || doc.documentElement.clientHeight
       };
       device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
-      device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
-      device.is_mobile = (device.is_tablet || device.is_phone);
+      device.is_phone = !device.is_tablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
+      device.is_mobile = device.is_tablet || device.is_phone;
       return device;
     },
     plugins: function(){
@@ -412,9 +409,9 @@ var session_fetch = (function(win, doc, nav){
   SessionRunner();
 
 });
-
-if (typeof(exports) === 'undefined'){
+// Switch for testing purposes.
+if (typeof(window.exports) === 'undefined'){
   session_fetch(window, document, navigator);
 } else {
-  exports.session = session_fetch;
+  window.exports.session = session_fetch;
 }
