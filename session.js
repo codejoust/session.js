@@ -154,7 +154,7 @@ var session_fetch = (function(win, doc, nav){
         { string: nav.platform, subString: "Win", identity: "Windows" },
         { string: nav.platform, subString: "Mac", identity: "Mac" },
         { string: nav.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-        { string: nav.userAgent, subString: "iPad", identitiy: "iPad" },
+        { string: nav.userAgent, subString: "iPad", identity: "iPad" },
         { string: nav.platform, subString: "Linux", identity: "Linux" },
         { string: nav.userAgent, subString: "Android", identity: "Android" }
       ]}
