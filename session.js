@@ -31,7 +31,7 @@ var session_fetch = (function(win, doc, nav){
     // Session cookie name (set blank to disable cookie)
     session_cookie: "first_session"
   };
-  
+
   // Session object
   var SessionRunner = function(){
     // Helper for querying.
@@ -103,8 +103,8 @@ var session_fetch = (function(win, doc, nav){
       } }
     check_asynch();
   };
-  
-  
+
+
   // Browser (and OS) detection
   var browser = {
     detect: function(){
@@ -159,7 +159,7 @@ var session_fetch = (function(win, doc, nav){
         { string: nav.userAgent, subString: "Android", identity: "Android" }
       ]}
   };
-  
+
   var modules = {
     browser: function(){
       return browser.detect();
@@ -218,7 +218,7 @@ var session_fetch = (function(win, doc, nav){
         silverlight: check_plugin("silverlight"),
         java:        check_plugin("java"),
         quicktime:   check_plugin("quicktime")
-      }; 
+      };
     },
     session: function (cookie, expires){
       var session = util.get_obj(cookie);
@@ -257,11 +257,13 @@ var session_fetch = (function(win, doc, nav){
               session.search.query  = terms; session.search.terms  = terms.split(" ");
               break;
             }
-          } 
+          }
         }
       } else {
+        session.prev_visit = session.last_visit;
         session.last_visit = new Date().getTime();
         session.visits++;
+        session.time_since_last_visit = session.last_visit - session.prev_visit;
       }
       util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
@@ -320,7 +322,7 @@ var session_fetch = (function(win, doc, nav){
         util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
       }}
   };
-  
+
   // Utilities
   var util = {
     parse_url: function(url_str){
@@ -380,7 +382,7 @@ var session_fetch = (function(win, doc, nav){
       }
     }
   };
-  
+
   // JSON
   var JSON = {
     parse: (win.JSON && win.JSON.parse) || function(data){
