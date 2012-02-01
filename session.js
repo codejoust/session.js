@@ -370,9 +370,12 @@ var session_fetch = (function(win, doc, nav){
       doc.getElementsByTagName("body")[0].appendChild(element);
     },
     package_obj: function (obj){
-      obj.version = API_VERSION;
-      var ret = JSON.stringify(obj);
-      delete obj.version; return ret;
+      if(obj) {
+        obj.version = API_VERSION;
+        var ret = JSON.stringify(obj);
+        delete obj.version;
+        return ret;
+      }
     },
     get_obj: function(cookie_name){
       var obj;
