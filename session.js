@@ -6,10 +6,9 @@
  * This version uses google's jsapi library for location services.
  * For details, see: https://github.com/codejoust/session.js
  */
-(function(win, doc, nav){
+var session_fetch = (function(win, doc, nav){
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
-  
   // Settings: defaults
   var options = {
     // Use the HTML5 Geolocation API
@@ -32,12 +31,13 @@
     // Session cookie name (set blank to disable cookie)
     session_cookie: "first_session"
   };
-  
+
   // Session object
   var SessionRunner = function(){
+    win.session = {};
     // Helper for querying.
     // Usage: session.current_session.referrer_info.hostname.contains(['github.com','news.ycombinator.com'])
-    String.prototype.contains = function(other_str){
+    win.session.contains = function(other_str){
       if (typeof(other_str) === 'string'){
         return (this.indexOf(other_str) !== -1); }
       for (var i = 0; i < other_str.length; i++){
@@ -104,8 +104,8 @@
       } }
     check_asynch();
   };
-  
-  
+
+
   // Browser (and OS) detection
   var browser = {
     detect: function(){
@@ -155,12 +155,12 @@
         { string: nav.platform, subString: "Win", identity: "Windows" },
         { string: nav.platform, subString: "Mac", identity: "Mac" },
         { string: nav.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
-        { string: nav.userAgent, subString: "iPad", identitiy: "iPad" },
-        { string: nav.platform, subString: "Linux", identity: "Linux" },
-        { string: nav.userAgent, subString: "Android", identity: "Android" }
+        { string: nav.userAgent, subString: "iPad", identity: "iPad" },
+        { string: nav.userAgent, subString: "Android", identity: "Android" },
+        { string: nav.platform, subString: "Linux", identity: "Linux" }
       ]}
   };
-  
+
   var modules = {
     browser: function(){
       return browser.detect();
@@ -174,12 +174,12 @@
       // Gives a browser estimation, not guaranteed to be correct.
     },
     locale: function() {
-      var lang = (
+      var lang = ((
         nav.language        ||
         nav.browserLanguage ||
         nav.systemLanguage  ||
         nav.userLanguage
-      ).split("-");
+      ) || '').split("-");
       if (lang.length == 2){
         return { country: lang[1].toLowerCase(), lang: lang[0].toLowerCase() };
       } else if (lang) {
@@ -189,19 +189,17 @@
     device: function() {
       var device = {
         screen: {
-          width: screen.width,
-          height: screen.height
+          width:  win.screen.width,
+          height: win.screen.height
         }
       };
-      var html = doc.documentElement,
-          body = doc.getElementsByTagName("body")[0];
       device.viewport = {
-        width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
-        height: win.innerHeight || html.clientHeight || body.clientHeight
+        width:  win.innerWidth || doc.body.clientWidth || doc.documentElement.clientWidth,
+        height: win.innerHeight || doc.body.clientHeight || doc.documentElement.clientHeight
       };
       device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
-      device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
-      device.is_mobile = (device.is_tablet || device.is_phone);
+      device.is_phone = !device.is_tablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
+      device.is_mobile = device.is_tablet || device.is_phone;
       return device;
     },
     plugins: function(){
@@ -221,7 +219,7 @@
         silverlight: check_plugin("silverlight"),
         java:        check_plugin("java"),
         quicktime:   check_plugin("quicktime")
-      }; 
+      };
     },
     session: function (cookie, expires){
       var session = util.get_obj(cookie);
@@ -260,11 +258,13 @@
               session.search.query  = terms; session.search.terms  = terms.split(" ");
               break;
             }
-          } 
+          }
         }
       } else {
+        session.prev_visit = session.last_visit;
         session.last_visit = new Date().getTime();
         session.visits++;
+        session.time_since_last_visit = session.last_visit - session.prev_visit;
       }
       util.set_cookie(cookie, util.package_obj(session), expires);
       return session;
@@ -323,7 +323,7 @@
         util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
       }}
   };
-  
+
   // Utilities
   var util = {
     parse_url: function(url_str){
@@ -352,7 +352,7 @@
       if (!options){ var options = {}; }
       if (value === null || value === undefined){ expires = -1; }
       if (expires){ options.expires = (new Date().getTime()) + expires; }
-      return (document.cookie = [
+      return (doc.cookie = [
           encodeURIComponent(cname), '=',
           encodeURIComponent(String(value)),
           options.expires ? '; expires=' + new Date(options.expires).toUTCString() : '', // use expires attribute, max-age is not supported by IE
@@ -362,7 +362,7 @@
       ].join(''));
     },
     get_cookie: function(cookie_name, result){ // from jquery.cookie.js
-      return (result = new RegExp('(?:^|; )' + encodeURIComponent(cookie_name) + '=([^;]*)').exec(document.cookie)) ? decodeURIComponent(result[1]) : null;
+      return (result = new RegExp('(?:^|; )' + encodeURIComponent(cookie_name) + '=([^;]*)').exec(doc.cookie)) ? decodeURIComponent(result[1]) : null;
     },
     embed_script: function(url){
       var element  = doc.createElement("script");
@@ -371,9 +371,12 @@
       doc.getElementsByTagName("body")[0].appendChild(element);
     },
     package_obj: function (obj){
-      obj.version = API_VERSION;
-      var ret = JSON.stringify(obj);
-      delete obj.version; return ret;
+      if(obj) {
+        obj.version = API_VERSION;
+        var ret = JSON.stringify(obj);
+        delete obj.version;
+        return ret;
+      }
     },
     get_obj: function(cookie_name){
       var obj;
@@ -383,7 +386,7 @@
       }
     }
   };
-  
+
   // JSON
   var JSON = {
     parse: (win.JSON && win.JSON.parse) || function(data){
@@ -411,4 +414,10 @@
   // Initialize SessionRunner
   SessionRunner();
 
-})(window, document, navigator);
+});
+// Switch for testing purposes.
+if (typeof(window.exports) === 'undefined'){
+  session_fetch(window, document, navigator);
+} else {
+  window.exports.session = session_fetch;
+}
