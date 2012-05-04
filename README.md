@@ -29,7 +29,7 @@ Quick Example:
     if (session.first_session.visits > 1){
       alert('Hi again from ' + session.location.address.city);
     } else {
-      if (session.current_session.referrer_info.host.contains('facebook')){
+      if (session.contains(session.current_session.referrer_info.host, 'facebook')){
         alert('Hi there from '+ session.location.address.city +'. How about liking us on facebook?');
       } else if (session.current_session.search.engine){
         alert('Did you find what you were looking for from ' + session.current_session.search.engine + '?');

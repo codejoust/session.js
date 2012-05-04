@@ -34,9 +34,10 @@ var session_fetch = (function(win, doc, nav){
 
   // Session object
   var SessionRunner = function(){
+    win.session = {};
     // Helper for querying.
     // Usage: session.current_session.referrer_info.hostname.contains(['github.com','news.ycombinator.com'])
-    String.prototype.contains = function(other_str){
+    win.session.contains = function(other_str){
       if (typeof(other_str) === 'string'){
         return (this.indexOf(other_str) !== -1); }
       for (var i = 0; i < other_str.length; i++){
