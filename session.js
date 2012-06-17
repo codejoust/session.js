@@ -34,7 +34,7 @@ var session_fetch = (function(win, doc, nav){
 
   // Session object
   var SessionRunner = function(){
-    win.session = {};
+    win.session = win.session || {};
     // Helper for querying.
     // Usage: session.current_session.referrer_info.hostname.contains(['github.com','news.ycombinator.com'])
     win.session.contains = function(other_str){
