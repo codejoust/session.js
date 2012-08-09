@@ -1,0 +1,6 @@
+session.js 0.4.1
+(c) 2012 Iain, CodeJoust
+session.js is freely distributable under the MIT license.
+Portions of session.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
+This version uses google's jsapi library for location services.
+For details, see: https://github.com/codejoust/session.js
