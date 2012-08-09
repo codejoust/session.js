@@ -196,8 +196,8 @@
       var html = doc.documentElement,
           body = doc.getElementsByTagName("body")[0];
       device.viewport = {
-        width:  win.innerWidth  || html.clientWidth  || body.clientWidth,
-        height: win.innerHeight || html.clientHeight || body.clientHeight
+        width: win.innerWidth || doc.documentElement.clientWidth || doc.body.clientWidth,
+        height: win.innerHeight || doc.documentElement.clientHeight || doc.body.clientHeight 
       };
       device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
       device.is_phone = !device.isTablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
