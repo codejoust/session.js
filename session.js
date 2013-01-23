@@ -204,7 +204,7 @@ var session_fetch = (function(win, doc, nav){
     },
     plugins: function(){
       var check_plugin = function(name){
-        if (nav.plugins){
+        if (nav.plugins && nav.plugins.length > 0){
           var plugin, i = 0, length = nav.plugins.length;
           for (; i < length; i++ ){
             plugin = nav.plugins[i];
@@ -212,8 +212,22 @@ var session_fetch = (function(win, doc, nav){
               return true;
             } }
           return false;
-        } return false;
-      }
+        }
+        else{
+          //IE9 does not return navigator.plugins, so look at ActiveXObjects instead 
+          if (name=="flash"){
+            var flashObj = null;
+            try { flashObj = new ActiveXObject('ShockwaveFlash.ShockwaveFlash'); } catch (ex) { return false; }
+            if (flashObj != null) {
+                var fV;
+                try { fV = flashObj.GetVariable("$version"); } catch (err) { return false; }
+                return true;
+            }
+          }
+        }
+        return false;
+      };
+
       return {
         flash:       check_plugin("flash"),
         silverlight: check_plugin("silverlight"),
