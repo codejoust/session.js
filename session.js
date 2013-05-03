@@ -42,10 +42,10 @@ var session_fetch = (function(win, doc, nav){
         return (this.indexOf(other_str) !== -1); }
       for (var i = 0; i < other_str.length; i++){
         if (this.indexOf(other_str[i]) !== -1){ return true; } }
-      return false; }
+      return false; };
     // Merge options
     if (win.session && win.session.options) {
-      for (option in win.session.options){
+      for (var option in win.session.options){
         options[option] = win.session.options[option]; }
     }
     // Modules to run
@@ -213,7 +213,7 @@ var session_fetch = (function(win, doc, nav){
             } }
           return false;
         } return false;
-      }
+      };
       return {
         flash:       check_plugin("flash"),
         silverlight: check_plugin("silverlight"),
@@ -298,11 +298,11 @@ var session_fetch = (function(win, doc, nav){
                 options.location_cookie,
                 util.package_obj(win.google.loader.ClientLocation),
                 options.location_cookie_timeout * 60 * 60 * 1000);
-            }}
+            }};
           util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
         } else {
           callback(location);
-        }}
+        }};
     },
     ipinfodb_location: function(api_key){
       return function (callback){
@@ -319,7 +319,7 @@ var session_fetch = (function(win, doc, nav){
           } else {
             if (options.gapi_location){ return modules.gapi_location()(callback); }
             else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
-          }}
+          }};
         util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
       }}
   };
@@ -328,7 +328,7 @@ var session_fetch = (function(win, doc, nav){
   var util = {
     parse_url: function(url_str){
       var a = doc.createElement("a"), query = {};
-      a.href = url_str; query_str = a.search.substr(1);
+      a.href = url_str; var query_str = a.search.substr(1);
       // Disassemble query string
       if (query_str != ''){
         var pairs = query_str.split("&"), i = 0,
@@ -349,7 +349,7 @@ var session_fetch = (function(win, doc, nav){
     },
     set_cookie: function(cname, value, expires, options){ // from jquery.cookie.js
       if (!cname){ return null; }
-      if (!options){ var options = {}; }
+      if (!options){ options = {}; }
       if (value === null || value === undefined){ expires = -1; }
       if (expires){ options.expires = (new Date().getTime()) + expires; }
       return (doc.cookie = [
@@ -380,7 +380,7 @@ var session_fetch = (function(win, doc, nav){
     },
     get_obj: function(cookie_name){
       var obj;
-      try { obj = JSON.parse(util.get_cookie(cookie_name)); } catch(e){};
+      try { obj = JSON.parse(util.get_cookie(cookie_name)); } catch(e){}
       if (obj && obj.version == API_VERSION){
         delete obj.version; return obj;
       }
