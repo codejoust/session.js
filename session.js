@@ -7,6 +7,7 @@
  * For details, see: https://github.com/codejoust/session.js
  */
 var session_fetch = (function(win, doc, nav){
+  'use strict';
   // Changing the API Version invalidates olde cookies with previous api version tags.
   var API_VERSION = 0.4;
   // Settings: defaults
@@ -328,7 +329,7 @@ var session_fetch = (function(win, doc, nav){
   var util = {
     parse_url: function(url_str){
       var a = doc.createElement("a"), query = {};
-      a.href = url_str; query_str = a.search.substr(1);
+      a.href = url_str; var query_str = a.search.substr(1);
       // Disassemble query string
       if (query_str != ''){
         var pairs = query_str.split("&"), i = 0,
