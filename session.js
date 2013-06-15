@@ -307,7 +307,7 @@ var session_fetch = (function(win, doc, nav){
     ipinfodb_location: function(api_key){
       return function (callback){
         var location_cookie = util.get_obj(options.location_cookie);
-        if (location_cookie && location_cookie.source === 'ipinfodb'){ callback(location_cookie); }
+        if (!location_cookie && location_cookie.source === 'ipinfodb'){ 
         win.ipinfocb = function(data){
           if (data.statusCode === "OK"){
             data.source = "ipinfodb";
@@ -321,6 +321,7 @@ var session_fetch = (function(win, doc, nav){
             else { callback({error: true, source: "ipinfodb", message: data.statusMessage}); }
           }};
         util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
+        } else { callback(location_cookie); }
       }}
   };
 
