@@ -30,7 +30,9 @@ var session_fetch = (function(win, doc, nav){
     // Session expiration in days
     session_timeout: 32,
     // Session cookie name (set blank to disable cookie)
-    session_cookie: "first_session"
+    session_cookie: "first_session",
+    get_object: null, set_object: null // used for cookie session adaptors
+    // if null, will be reset to use cookies by default.
   };
 
   // Session object
@@ -110,11 +112,22 @@ var session_fetch = (function(win, doc, nav){
   // Browser (and OS) detection
   var browser = {
     detect: function(){
-      return {
+      var ret = {
         browser: this.search(this.data.browser),
         version: this.search(nav.userAgent) || this.search(nav.appVersion),
         os: this.search(this.data.os)
-    } },
+      };
+      if (ret.os=='Linux'){
+        var distros = ['CentOS','Debian','Fedora','Gentoo','Mandriva','Mageia','Red Hat','Slackware','SUSE','Turbolinux','Ubuntu'];
+        for (var i = 0; i < distros.length;i++){
+          if (nav.useragent.toLowerCase().match(distros[i].toLowerCase())){
+            ret.distro = distros[i];
+            break;
+          }
+        }
+      }
+      return ret;
+     },
     search: function(data) {
       if (typeof data === "object"){
         // search for string match
@@ -215,8 +228,19 @@ var session_fetch = (function(win, doc, nav){
           return false;
         } return false;
       };
+      var check_activex_flash = function(versions){
+        var found = true;
+        for (var i = 0; i < versions.length; i++){
+          try {
+            var obj = new ActiveXObject("ShockwaveFlash.ShockwaveFlash" + versions[i])
+              , found = !0;
+          } catch (e){ /* nil */ }
+          if (found) return true;
+        }
+        return false;
+      }
       return {
-        flash:       check_plugin("flash"),
+        flash:       check_plugin("flash") || check_activex_flash(['.7','.6','']),
         silverlight: check_plugin("silverlight"),
         java:        check_plugin("java"),
         quicktime:   check_plugin("quicktime")
@@ -267,7 +291,7 @@ var session_fetch = (function(win, doc, nav){
         session.visits++;
         session.time_since_last_visit = session.last_visit - session.prev_visit;
       }
-      util.set_cookie(cookie, util.package_obj(session), expires);
+      util.set_obj(cookie, session, expires);
       return session;
     },
     html5_location: function(){
@@ -295,15 +319,24 @@ var session_fetch = (function(win, doc, nav){
               } else {
                 callback({error: true, source: "google"});
               }
-              util.set_cookie(
+              util.set_obj(
                 options.location_cookie,
-                util.package_obj(win.google.loader.ClientLocation),
+                win.google.loader.ClientLocation,
                 options.location_cookie_timeout * 60 * 60 * 1000);
             }};
           util.embed_script("https://www.google.com/jsapi?callback=gloader_ready");
         } else {
           callback(location);
         }};
+    },
+    architecture: function(){
+      var arch = n.userAgent.match(/x86_64|Win64|WOW64|x86-64|x64\;|AMD64|amd64/) ||
+                (n.cpuClass === 'x64') ? 'x64' : 'x86';
+      return {
+        arch: arch,
+        is_x64: arch == 'x64',
+        is_x86: arch == 'x68'
+      }
     },
     ipinfodb_location: function(api_key){
       return function (callback){
@@ -312,9 +345,9 @@ var session_fetch = (function(win, doc, nav){
         win.ipinfocb = function(data){
           if (data.statusCode === "OK"){
             data.source = "ipinfodb";
-            util.set_cookie(
+            util.set_obj(
               options.location_cookie,
-              util.package_obj(data),
+              data,
               options.location_cookie * 60 * 60 * 1000);
             callback(data);
           } else {
@@ -380,6 +413,9 @@ var session_fetch = (function(win, doc, nav){
         return ret;
       }
     },
+    set_obj: function(cname, value, expires, options){
+      util.set_cookie(cname, util.package_obj(value), expires, options);
+    },
     get_obj: function(cookie_name){
       var obj;
       try { obj = JSON.parse(util.get_cookie(cookie_name)); } catch(e){}
@@ -388,6 +424,12 @@ var session_fetch = (function(win, doc, nav){
       }
     }
   };
+
+  // cookie options override
+  if (options.get_object != null){
+    util.get_obj = options['get_object']; }
+  if (options.set_object != null){
+    util.set_obj = options['set_object']; }
 
   // JSON
   var JSON = {
