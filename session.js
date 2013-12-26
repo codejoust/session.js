@@ -120,7 +120,7 @@ var session_fetch = (function(win, doc, nav){
       if (ret.os=='Linux'){
         var distros = ['CentOS','Debian','Fedora','Gentoo','Mandriva','Mageia','Red Hat','Slackware','SUSE','Turbolinux','Ubuntu'];
         for (var i = 0; i < distros.length;i++){
-          if (nav.useragent.toLowerCase().match(distros[i].toLowerCase())){
+          if (nav.userAgent.toLowerCase().match(distros[i].toLowerCase())){
             ret.distro = distros[i];
             break;
           }
