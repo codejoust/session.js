@@ -39,6 +39,16 @@ describe('screen size', function(){
     expect(mock.win.session.device.viewport.width).toEqual(342)
     expect(mock.win.session.device.viewport.height).toEqual(434)
   })
+  it('gets 0 size when inside iframe', function(){
+    mock.doc.documentElement = {}
+    mock.doc.documentElement.clientWidth = 0
+    mock.doc.documentElement.clientHeight = 0
+    mock.doc.body = undefined
+    mock.run_sess()
+    expect(mock.win.session.device.viewport).toBeTruthy()
+    expect(mock.win.session.device.viewport.width).toEqual(0)
+    expect(mock.win.session.device.viewport.height).toEqual(0)
+  })
 })
 
 describe('mobile / tablet device checks', function(){
