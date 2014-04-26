@@ -207,9 +207,12 @@ var session_fetch = (function(win, doc, nav){
           height: win.screen.height
         }
       };
+      var width, height;
+      try{ width = win.innerWidth || doc.documentElement.clientWidth || doc.body.clientWidth; } catch(e) { width = 0; }
+      try{ height = win.innerHeight || doc.documentElement.clientHeight || doc.body.clientHeight; } catch(e) { height = 0; }
       device.viewport = {
-        width: win.innerWidth || doc.documentElement.clientWidth || doc.body.clientWidth,
-        height: win.innerHeight || doc.documentElement.clientHeight || doc.body.clientHeight 
+        width: width,
+        height: height
       };
       device.is_tablet = !!nav.userAgent.match(/(iPad|SCH-I800|xoom|kindle)/i);
       device.is_phone = !device.is_tablet && !!nav.userAgent.match(/(iPhone|iPod|blackberry|android 0.5|htc|lg|midp|mmp|mobile|nokia|opera mini|palm|pocket|psp|sgh|smartphone|symbian|treo mini|Playstation Portable|SonyEricsson|Samsung|MobileExplorer|PalmSource|Benq|Windows Phone|Windows Mobile|IEMobile|Windows CE|Nintendo Wii)/i);
