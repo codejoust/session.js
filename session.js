@@ -162,6 +162,7 @@ var session_fetch = (function(win, doc, nav){
         { string: nav.vendor, subString: "Camino", identity: "Camino" },
         { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
         { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
+        { string: nav.userAgent, subString: "Trident", identity: "Explorer", versionSearch: "rv" },
         { string: nav.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
         { string: nav.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
       ],
