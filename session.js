@@ -1,3 +1,17 @@
+define(['jQuery'], function ($) {
+
+  var deferred = $.Deferred();
+
+  window.session = {
+    options: {
+      use_html5_location: false,
+      session_timeout: 1
+    },
+    start: function(data) {
+      deferred.resolve(data);
+    }
+  };
+
 /**
  * session.js 0.4.1
  * (c) 2012 Iain, CodeJoust
@@ -468,3 +482,6 @@ if (typeof(window.exports) === 'undefined'){
 } else {
   window.exports.session = session_fetch;
 }
+
+  return deferred;
+});
