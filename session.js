@@ -407,7 +407,7 @@ var session_fetch = (function(win, doc, nav){
       var element  = doc.createElement("script");
       element.type = "text/javascript";
       element.src  = url;
-      doc.getElementsByTagName("body")[0].appendChild(element);
+      (doc.body || doc.getElementsByTagName("body")[0] || doc.head).appendChild(element);
     },
     package_obj: function (obj){
       if(obj) {
