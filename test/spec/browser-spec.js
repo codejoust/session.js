@@ -41,6 +41,21 @@ describe('IE Browser Names', function(){
   }
 });
 
+describe('Edge Browser Names', function (){
+  var edge_tests = [
+    ['edge', 'Win', '12', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10240']
+    ];
+  var edge_tests_expected_result = [
+    { browser: 'Edge', version: 12.1024, os: 'Windows' }
+   ];
+  for (var i = 0; i < edge_tests.length; i++) {
+    var edge_test = edge_tests[i];
+    var expected_result = edge_tests_expected_result[i];
+    it(edge_test[0], _getTestHandler(edge_test, expected_result));
+  }
+
+});
+
 describe('Firefox Browser Names', function(){
   var firefox_tests = [
     ['firefox 9.0.1', '9.0.1',  'Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1'],
@@ -63,6 +78,15 @@ describe('Safari Browser Names', function(){
 
 describe('Chrome Browser Names', function(){
   var chrome_tests = [
-
+    ['chrome 44', 'Win', '44',  'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'], 
   ];
+
+  var chrome_tests_expected_result = [
+    { browser: 'Chrome', version: 44, os: 'Windows' }
+   ];
+  for (var i = 0; i < chrome_tests.length; i++) {
+    var chrome_test = chrome_tests[i];
+    var expected_result = chrome_tests_expected_result[i];
+    it(chrome_test[0], _getTestHandler(chrome_test, expected_result));
+  }
 });

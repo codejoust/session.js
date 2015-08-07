@@ -152,6 +152,7 @@ var session_fetch = (function(win, doc, nav){
     },
     data: {
       browser: [
+        { string: nav.userAgent, subString: "Edge", identity: "Edge"},
         { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
         { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
         { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
