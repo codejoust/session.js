@@ -155,6 +155,7 @@ var session_fetch = (function(win, doc, nav){
         { string: nav.userAgent, subString: "Edge", identity: "Edge"},
         { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
         { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+        { string: nav.userAgent, subString: "PhantomJS", identity: "PhantomJS" },
         { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
         { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
         { string: nav.vendor, subString: "iCab",identity: "iCab" },
@@ -346,7 +347,7 @@ var session_fetch = (function(win, doc, nav){
     ipinfodb_location: function(api_key){
       return function (callback){
         var location_cookie = util.get_obj(options.location_cookie);
-        if (!location_cookie && location_cookie.source === 'ipinfodb'){ 
+        if (!location_cookie && location_cookie.source === 'ipinfodb'){
         win.ipinfocb = function(data){
           if (data.statusCode === "OK"){
             data.source = "ipinfodb";
