@@ -155,6 +155,7 @@ var session_fetch = (function(win, doc, nav){
       browser: [
         { string: nav.userAgent, subString: "Edge", identity: "Edge"},
         { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
+        { string: nav.userAgent, subString: "CriOS", identity: "Chrome", versionSearch: "CriOS" },
         { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
         { string: nav.userAgent, subString: "PhantomJS", identity: "PhantomJS" },
         { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
@@ -162,6 +163,7 @@ var session_fetch = (function(win, doc, nav){
         { string: nav.vendor, subString: "iCab",identity: "iCab" },
         { string: nav.vendor, subString: "KDE", identity: "Konqueror" },
         { string: nav.userAgent, subString: "Firefox", identity: "Firefox" },
+        { string: nav.userAgent, subString: "Fluid", identity: "Fluid", versionSearch: "FluidApp Version" },
         { string: nav.vendor, subString: "Camino", identity: "Camino" },
         { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
         { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },

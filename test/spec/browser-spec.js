@@ -1,8 +1,8 @@
 // @todo - can tests be dynamically created in Jasmine for this to work?
 
-var mock = create_mock();
 var _getTestHandler = function(testData, expectedResult) {
   return function() {
+    var mock = create_mock();
     mock.nav.userAgent = testData[3];
     mock.nav.appVersion = testData[2];
     mock.nav.platform = testData[1];
@@ -18,8 +18,16 @@ var _getTestHandler = function(testData, expectedResult) {
   };
 };
 
+var testBrowserData = function(tests, expected_results) {
+  for (var i = 0; i < tests.length; i++) {
+    var test = tests[i];
+    var expected_result = expected_results[i];
+    it(test[0], _getTestHandler(test, expected_result));
+  }
+};
+
 describe('IE Browser Names', function(){
-  var ie_tests = [
+  var tests = [
     ['msie 11',       'Win', '11.0', 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv 11.0) like Gecko'],
     ['msie 10',       'Win', '10.0', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)'],
     ['msie 9',        'Win',  '9.0', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)'],
@@ -28,7 +36,7 @@ describe('IE Browser Names', function(){
     ['msie 8 .net',   'Win',  '8.0', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)'],
     ['msie 8 .net 2', 'Win',  '8.0', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)']
   ];
-  var ie_tests_expected_result = [
+  var expected_results = [
     { browser: 'Explorer', version: 11, os: 'Windows' },
     { browser: 'Explorer', version: 10, os: 'Windows' },
     { browser: 'Explorer', version:  9, os: 'Windows' },
@@ -37,25 +45,17 @@ describe('IE Browser Names', function(){
     { browser: 'Explorer', version:  8, os: 'Windows' },
     { browser: 'Explorer', version:  8, os: 'Windows' }
   ];
-  for (var i = 0; i < ie_tests.length; i++) {
-    var ie_test = ie_tests[i];
-    var expected_result = ie_tests_expected_result[i];
-    it(ie_test[0], _getTestHandler(ie_test, expected_result));
-  }
+  testBrowserData(tests, expected_results);
 });
 
 describe('Edge Browser Names', function (){
-  var edge_tests = [
+  var tests = [
     ['edge', 'Win', '12', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10240']
   ];
-  var edge_tests_expected_result = [
+  var expected_results = [
     { browser: 'Edge', version: 12.1024, os: 'Windows' }
   ];
-  for (var i = 0; i < edge_tests.length; i++) {
-    var edge_test = edge_tests[i];
-    var expected_result = edge_tests_expected_result[i];
-    it(edge_test[0], _getTestHandler(edge_test, expected_result));
-  }
+  testBrowserData(tests, expected_results);
 });
 
 describe('PhantomJS Browser Names', function (){
@@ -67,20 +67,23 @@ describe('PhantomJS Browser Names', function (){
     { browser: 'PhantomJS', version: 2, os: 'Windows' },
     { browser: 'PhantomJS', version: 1.9, os: 'Windows' }
   ];
-  for (var i = 0; i < tests.length; i++) {
-    var test = tests[i];
-    var expected_result = expected_results[i];
-    it(test[0], _getTestHandler(test, expected_result));
-  }
+  testBrowserData(tests, expected_results);
 });
 
 describe('Firefox Browser Names', function(){
-  var firefox_tests = [
-    ['firefox 9.0.1', '9.0.1',  'Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1'],
-    ['firefox 8.0.1', '8.0.1',  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:8.0.1) Gecko/20100101 Firefox/8.0.1'],
-    ['firefox 3.6',   '3.6.24', 'Mozilla/5.0 (X11; U; Linux i686; sk; rv:1.9.2.24) Gecko/20111107 Ubuntu/10.04 (lucid) Firefox/3.6.24'],
-    ['firefox beta',  '11.0a2', 'Mozilla/5.0 (X11; Linux x86_64; rv:11.0a2) Gecko/20120107 Firefox/11.0a2']
+  var tests = [
+    // ['firefox 9.0.1', 'Win32', '?', 'Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1'],
+    // ['firefox 8.0.1', '?', '?', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:8.0.1) Gecko/20100101 Firefox/8.0.1'],
+    // ['firefox 3.6', '?', '?', 'Mozilla/5.0 (X11; U; Linux i686; sk; rv:1.9.2.24) Gecko/20111107 Ubuntu/10.04 (lucid) Firefox/3.6.24'],
+    // ['firefox beta', 'Linux x86_64', '5.0 (X11)', 'Mozilla/5.0 (X11; Linux x86_64; rv:11.0a2) Gecko/20120107 Firefox/11.0a2']
+    ['firefox 47', 'Win32', '5.0 (Windows)', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'],
+    ['firefox 48', 'Linux x86_64', '5.0 (X11)', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0']
   ];
+  var expected_results = [
+    { browser: 'Firefox', version: 47, os: 'Windows' },
+    { browser: 'Firefox', version: 48, os: 'Linux' }
+  ];
+  testBrowserData(tests, expected_results);
 });
 
 describe('Safari Browser Names', function(){
@@ -95,24 +98,31 @@ describe('Safari Browser Names', function(){
   var expected_results = [
     { browser: 'Safari', version: 8, os: 'Mac' }
   ];
-  for (var i = 0; i < tests.length; i++) {
-    var test = tests[i];
-    var expected_result = expected_results[i];
-    it(test[0], _getTestHandler(test, expected_result));
-  }
+  testBrowserData(tests, expected_results);
+});
+
+describe('Fluid App Names', function(){
+  var tests = [
+    ['2249', 'MacIntel', '', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/601.6.17 (KHTML, like Gecko) FluidApp Version/2249 Safari/601.6.17'],
+    ['1955', 'MacIntel', '', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/1601.7.7 (KHTML, like Gecko) FluidApp Version/1955 Safari/1601.7.7']
+  ];
+  var expected_results = [
+    { browser: 'Fluid', version: 2249, os: 'Mac' },
+    { browser: 'Fluid', version: 1955, os: 'Mac' }
+  ];
+  testBrowserData(tests, expected_results);
 });
 
 describe('Chrome Browser Names', function(){
-  var chrome_tests = [
-    ['chrome 44', 'Win', '44',  'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'],
+  var tests = [
+    ['chrome 52', 'MacIntel', '5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'],
+    ['chrome 52 for iPhone', 'iPhone', '', 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/601.1 (KHTML, like Gecko) CriOS/52.0.2743.84 Mobile/14A5345a Safari/601.1.46'],
+    ['chrome 44', 'Win', '5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36']
   ];
-
-  var chrome_tests_expected_result = [
+  var expected_results = [
+    { browser: 'Chrome', version: 52, os: 'Mac' },
+    { browser: 'Chrome', version: 52, os: 'iPhone/iPod' },
     { browser: 'Chrome', version: 44, os: 'Windows' }
-   ];
-  for (var i = 0; i < chrome_tests.length; i++) {
-    var chrome_test = chrome_tests[i];
-    var expected_result = chrome_tests_expected_result[i];
-    it(chrome_test[0], _getTestHandler(chrome_test, expected_result));
-  }
+  ];
+  testBrowserData(tests, expected_results);
 });
