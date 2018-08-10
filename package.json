@@ -1,0 +1,25 @@
+{
+  "name": "session.js",
+  "version": "0.4.1",
+  "description": "Gives information about the current session.",
+  "main": "session.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codejoust/session.js.git"
+  },
+  "keywords": [
+    "session"
+  ],
+  "author": "codejoust",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codejoust/session.js/issues"
+  },
+  "homepage": "https://github.com/codejoust/session.js#readme"
+}
