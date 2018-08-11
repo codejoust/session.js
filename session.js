@@ -1,3 +1,4 @@
+/*jshint quotmark:false,curly:false,maxlen:340,maxdepth:4*/
 /**
  * session.js 0.4.1
  * (c) 2012 Iain, CodeJoust
@@ -79,7 +80,7 @@ var session_fetch = (function(win, doc, nav){
       var start = win.session.start;
     }
     // Set up checking, if all modules are ready
-    var asynchs = 0, module, result,
+    var asynchs = 0, module,
     check_asynch = function(deinc){
       if (deinc){ asynchs--; }
       if (asynchs === 0){
@@ -154,12 +155,15 @@ var session_fetch = (function(win, doc, nav){
       browser: [
         { string: nav.userAgent, subString: "Edge", identity: "Edge"},
         { string: nav.userAgent, subString: "Chrome", identity: "Chrome" },
+        { string: nav.userAgent, subString: "CriOS", identity: "Chrome", versionSearch: "CriOS" },
         { string: nav.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+        { string: nav.userAgent, subString: "PhantomJS", identity: "PhantomJS" },
         { string: nav.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
         { prop:   win.opera, identity: "Opera", versionSearch: "Version" },
         { string: nav.vendor, subString: "iCab",identity: "iCab" },
         { string: nav.vendor, subString: "KDE", identity: "Konqueror" },
         { string: nav.userAgent, subString: "Firefox", identity: "Firefox" },
+        { string: nav.userAgent, subString: "Fluid", identity: "Fluid", versionSearch: "FluidApp Version" },
         { string: nav.vendor, subString: "Camino", identity: "Camino" },
         { string: nav.userAgent, subString: "Netscape", identity: "Netscape" },
         { string: nav.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
@@ -237,13 +241,13 @@ var session_fetch = (function(win, doc, nav){
         var found = true;
         for (var i = 0; i < versions.length; i++){
           try {
-            var obj = new ActiveXObject("ShockwaveFlash.ShockwaveFlash" + versions[i])
-              , found = !0;
+            new ActiveXObject("ShockwaveFlash.ShockwaveFlash" + versions[i]);
+            found = !0;
           } catch (e){ /* nil */ }
           if (found) return true;
         }
         return false;
-      }
+      };
       return {
         flash:       check_plugin("flash") || check_activex_flash(['.7','.6','']),
         silverlight: check_plugin("silverlight"),
@@ -269,7 +273,7 @@ var session_fetch = (function(win, doc, nav){
           { name: "Ask", host: "ask.com", query: "q" },
           { name: "Baidu", host: "baidu.com", query: "wd" }
         ], length = search_engines.length,
-           engine, match, i = 0,
+           engine, i = 0,
            fallbacks = 'q query term p wd query text'.split(' ');
         for (i = 0; i < length; i++){
           engine = search_engines[i];
@@ -335,18 +339,18 @@ var session_fetch = (function(win, doc, nav){
         }};
     },
     architecture: function(){
-      var arch = n.userAgent.match(/x86_64|Win64|WOW64|x86-64|x64\;|AMD64|amd64/) ||
-                (n.cpuClass === 'x64') ? 'x64' : 'x86';
+      var arch = nav.userAgent.match(/x86_64|Win64|WOW64|x86-64|x64\;|AMD64|amd64/) ||
+                (nav.cpuClass === 'x64') ? 'x64' : 'x86';
       return {
         arch: arch,
         is_x64: arch == 'x64',
         is_x86: arch == 'x68'
-      }
+      };
     },
     ipinfodb_location: function(api_key){
       return function (callback){
         var location_cookie = util.get_obj(options.location_cookie);
-        if (!location_cookie && location_cookie.source === 'ipinfodb'){ 
+        if (!location_cookie && location_cookie.source === 'ipinfodb'){
         win.ipinfocb = function(data){
           if (data.statusCode === "OK"){
             data.source = "ipinfodb";
@@ -361,7 +365,7 @@ var session_fetch = (function(win, doc, nav){
           }};
         util.embed_script("http://api.ipinfodb.com/v3/ip-city/?key=" + api_key + "&format=json&callback=ipinfocb");
         } else { callback(location_cookie); }
-      }}
+      };}
   };
 
   // Utilities
@@ -385,7 +389,7 @@ var session_fetch = (function(win, doc, nav){
         protocol: a.protocol,
         port:     a.port === '' ? 80 : a.port,
         search:   a.search,
-        query:    query }
+        query:    query };
     },
     set_cookie: function(cname, value, expires, options){ // from jquery.cookie.js
       if (!cname){ return null; }
