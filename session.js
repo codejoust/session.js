@@ -36,6 +36,8 @@ let session_fetch = (function (win, doc, nav) {
         // Tracker ID: initialize with a random string so that repeated visits are
         // easily tracked
         tracker_id: null,
+        // Set to true to record extra client data
+        extra: false,
     };
 
     // Session object
@@ -89,6 +91,10 @@ let session_fetch = (function (win, doc, nav) {
             unloaded_modules.location = modules.ipinfodb_location(options.ipinfodb_key);
         } else if (options.gapi_location) {
             unloaded_modules.location = modules.gapi_location();
+        }
+        // Extra switch
+        if (options.extra) {
+            unloaded_modules.extra = modules.extra_data()
         }
         // Cache win.session.start
         let start;
@@ -434,6 +440,27 @@ let session_fetch = (function (win, doc, nav) {
                 is_x86: arch === 'x68',
             }
         },
+        extra_data: function () {
+            let nav = {};
+            for (let obj in navigator) {
+                if (typeof (navigator[obj]) === 'string') {
+                    nav[obj] = navigator[obj];
+                }
+            }
+            return {
+                navigator: nav,
+                document: {
+                    referrer: document.referrer,
+                    clientWidth: document.documentElement.clientWidth,
+                    clientHeight: document.documentElement.clientHeight,
+                },
+                window: {
+                    innerWidth: window.innerWidth,
+                    innerHeight: window.innerHeight,
+                    location: window.location.href,
+                },
+            }
+        }
     };
 
     // Utilities
