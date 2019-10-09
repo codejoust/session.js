@@ -33,6 +33,9 @@ let session_fetch = (function (win, doc, nav) {
         session_cookie: 'session-js',
         get_object: null, set_object: null, // used for cookie session adaptors
         // if null, will be reset to use cookies by default.
+        // Tracker ID: initialize with a random string so that repeated visits are
+        // easily tracked
+        tracker_id: null,
     };
 
     // Session object
@@ -66,10 +69,12 @@ let session_fetch = (function (win, doc, nav) {
             current_session: modules.session(
                 null,
                 null,
+                options.tracker_id,
             ),
             original_session: modules.session(
                 options.session_cookie,
                 options.session_timeout * 24 * 60 * 60 * 1000,
+                options.tracker_id,
             ),
             browser: modules.browser(),
             plugins: modules.plugins(),
@@ -292,10 +297,11 @@ let session_fetch = (function (win, doc, nav) {
                 quicktime: check_plugin('quicktime')
             };
         },
-        session: function (cookie, expires) {
+        session: function (cookie, expires, tracker = null) {
             let session = util.get_obj(cookie);
             if (session == null) {
                 session = {
+                    tracker: tracker,
                     visits: 1,
                     start: new Date().getTime(), last_visit: new Date().getTime(),
                     url: win.location.href, path: win.location.pathname,
@@ -334,6 +340,10 @@ let session_fetch = (function (win, doc, nav) {
                     }
                 }
             } else {
+                // Could've been initialized w/o id, so check and set
+                if (tracker && !session.tracker) {
+                    session.tracker = tracker;
+                }
                 session.prev_visit = session.last_visit;
                 session.last_visit = new Date().getTime();
                 session.visits++;
